@@ -198,18 +198,6 @@ public class ExcelToPdf{
         POIImage poiImage = new POIImage().getCellImage(cell);
         byte[] bytes = poiImage.getBytes();
         if(bytes != null){
-//           double cw = cellWidth;
-//           double ch = pdfpCell.getFixedHeight();
-//
-//           double iw = poiImage.getDimension().getWidth();
-//           double ih = poiImage.getDimension().getHeight();
-//
-//           double scale = cw / ch;
-//
-//           double nw = iw * scale;
-//           double nh = ih - (iw - nw);
-//
-//           POIUtil.scale(bytes , nw  , nh);
             pdfpCell.setVerticalAlignment(Element.ALIGN_MIDDLE);
             pdfpCell.setHorizontalAlignment(Element.ALIGN_CENTER);
             Image image = Image.getInstance(bytes);
