@@ -6,10 +6,12 @@ import com.itextpdf.text.pdf.PdfPCell;
 import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
 import com.sh.docresolving.entity.Merge;
+import com.sh.docresolving.entity.PdfPTableEx;
 import org.apache.poi.hssf.util.HSSFColor;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.*;
+import org.springframework.security.core.parameters.P;
 
 import java.io.*;
 import java.net.MalformedURLException;
@@ -30,10 +32,14 @@ public class ExcelToPdf{
         Rectangle rectangle = new Rectangle(PageSize.A4);
         Document document = new Document(rectangle);
         OutputStream os = new FileOutputStream(pdfPath);
-        //PdfWriter pdfWriter = PdfWriter.getInstance(document,os);
-        //document.open();
-        getPdfTables(workbook,document,os);
-        //document.close();
+        PdfWriter pdfWriter = PdfWriter.getInstance(document,os);
+        document.open();
+        List<PdfPTable> tables = getPdfTables(workbook,document,os);
+        for(int i = 0;i<tables.size();i++){
+            if(i!=0) document.newPage();
+            document.add(tables.get(i));
+        }
+        document.close();
     }
 
     public static List<PdfPTable> getPdfTables(XSSFWorkbook workbook,Document document,OutputStream os) throws Exception{
@@ -42,14 +48,21 @@ public class ExcelToPdf{
         for(int i = 0 ; i< sheetCount;i++){
             //获取单个sheet
             XSSFSheet sheet = workbook.getSheetAt(i);
-            List<PdfPCell> cells = getPdfCells(sheet);
+            PdfPTableEx pdfPTableEx = getPdfCells(sheet);
+            PdfPTable table = new PdfPTable(pdfPTableEx.getWidths());
+            table.setWidthPercentage(100);
+            for (PdfPCell pdfpCell : pdfPTableEx.getCells()) {
+                table.addCell(pdfpCell);
+            }
+            tables.add(table);
         }
         return tables;
     }
 
-    public static List<PdfPCell> getPdfCells(XSSFSheet sheet) throws Exception{
+    public static PdfPTableEx getPdfCells(XSSFSheet sheet) throws Exception{
         int rowCount = sheet.getPhysicalNumberOfRows();
         List<PdfPCell> cells = new ArrayList<>();
+        PdfPTableEx pdfPTableEx = new PdfPTableEx();
         for(int i = 0 ; i < rowCount ; i++){
             XSSFRow row = sheet.getRow(i);
             int cellCount = row.getLastCellNum();
@@ -59,7 +72,7 @@ public class ExcelToPdf{
                 if(cell == null) cell = row.createCell(j);
                 cell.setCellType(Cell.CELL_TYPE_STRING);
                 float cellWidth = getPOICellWidth(sheet,cell);
-                widths[j] = cellWidth;
+                widths[cell.getColumnIndex()] = cellWidth;
                 String cellValue = cell.getStringCellValue();
                 XSSFFont font = cell.getCellStyle().getFont();
                 short height = font.getFontHeightInPoints();
@@ -78,8 +91,10 @@ public class ExcelToPdf{
                 cells.add(pdfpCell);
                 j += merge.getColspan() - 1;
             }
+            pdfPTableEx.setWidths(widths);
         }
-        return null;
+        pdfPTableEx.setCells(cells);
+        return pdfPTableEx;
     }
 
     public static int getPOICellWidth(Sheet sheet,Cell cell) {
