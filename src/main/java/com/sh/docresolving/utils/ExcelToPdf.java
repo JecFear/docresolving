@@ -5,18 +5,24 @@ import com.itextpdf.text.Font;
 import com.itextpdf.text.pdf.PdfPCell;
 import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
+import com.sh.docresolving.entity.BorderParam;
 import com.sh.docresolving.entity.Merge;
+import com.sh.docresolving.entity.MergeBack;
 import com.sh.docresolving.entity.PdfPTableEx;
 import org.apache.poi.hssf.util.HSSFColor;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.*;
 import org.springframework.security.core.parameters.P;
+import org.springframework.util.StringUtils;
 
 import java.io.*;
 import java.net.MalformedURLException;
+import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class ExcelToPdf{
 
@@ -30,11 +36,12 @@ public class ExcelToPdf{
     public static void convert(String excelPath,String pdfPath) throws Exception {
         XSSFWorkbook workbook = readExcel(excelPath);
         Rectangle rectangle = new Rectangle(PageSize.A4);
+        float A4Height = PageSize.A4.getHeight()-90;
         Document document = new Document(rectangle);
         OutputStream os = new FileOutputStream(pdfPath);
         PdfWriter pdfWriter = PdfWriter.getInstance(document,os);
         document.open();
-        List<PdfPTable> tables = getPdfTables(workbook,document,os);
+        List<PdfPTable> tables = getPdfTables(workbook,document,os,A4Height);
         for(int i = 0;i<tables.size();i++){
             if(i!=0) document.newPage();
             document.add(tables.get(i));
@@ -42,13 +49,13 @@ public class ExcelToPdf{
         document.close();
     }
 
-    public static List<PdfPTable> getPdfTables(XSSFWorkbook workbook,Document document,OutputStream os) throws Exception{
+    public static List<PdfPTable> getPdfTables(XSSFWorkbook workbook,Document document,OutputStream os,float A4Height) throws Exception{
         int sheetCount = workbook.getNumberOfSheets();
         List<PdfPTable> tables = new ArrayList<>();
         for(int i = 0 ; i< sheetCount;i++){
             //获取单个sheet
             XSSFSheet sheet = workbook.getSheetAt(i);
-            PdfPTableEx pdfPTableEx = getPdfCells(sheet);
+            PdfPTableEx pdfPTableEx = getPdfCells(sheet,A4Height);
             PdfPTable table = new PdfPTable(pdfPTableEx.getWidths());
             table.setWidthPercentage(100);
             for (PdfPCell pdfpCell : pdfPTableEx.getCells()) {
@@ -59,21 +66,30 @@ public class ExcelToPdf{
         return tables;
     }
 
-    public static PdfPTableEx getPdfCells(XSSFSheet sheet) throws Exception{
-        int rowCount = sheet.getPhysicalNumberOfRows();
+    public static PdfPTableEx getPdfCells(XSSFSheet sheet,float A4Height) throws Exception{
+        int rowCount = sheet.getLastRowNum();
         List<PdfPCell> cells = new ArrayList<>();
         PdfPTableEx pdfPTableEx = new PdfPTableEx();
-        for(int i = 0 ; i < rowCount ; i++){
+        float[] widths = null;
+        float mw = 0;
+        BorderParam borderParam = getBorderParam(sheet);
+        int maxColNum = borderParam.getMaxCol();
+        int maxRowNum = borderParam.getMaxRow();
+        int maxHeight = getMaxHeight(sheet,maxRowNum);
+        Map<Integer,MergeBack> mergeBacks = new HashMap<>();
+        for(int i = 0 ; i < maxRowNum ; i++){
             XSSFRow row = sheet.getRow(i);
-            int cellCount = row.getLastCellNum();
-            float[] widths = new float[cellCount];
-            for(int j = 0 ; j < cellCount; j++){
+            float[] cws = new float[maxColNum];
+            MergeBack mergeBack = mergeBacks.get(i);
+            float rowHeight = row.getHeightInPoints();
+            float rowPixelHeight = getRowPixelHeight(A4Height,maxHeight,rowHeight);
+            for(int j = 0 ; j < maxColNum; j++){
                 XSSFCell cell = row.getCell(j);
+                if(mergeBack!=null&&j<=mergeBack.getEnd()&&j>=mergeBack.getStart()) continue;
                 if(cell == null) cell = row.createCell(j);
                 cell.setCellType(Cell.CELL_TYPE_STRING);
-                float cellWidth = getPOICellWidth(sheet,cell);
-                widths[cell.getColumnIndex()] = cellWidth;
-                String cellValue = cell.getStringCellValue();
+                float cellWidth = sheet.getColumnWidth(cell.getColumnIndex());
+                cws[cell.getColumnIndex()] = cellWidth;
                 XSSFFont font = cell.getCellStyle().getFont();
                 short height = font.getFontHeightInPoints();
                 Merge merge = getColspanRowspanByExcel(sheet,row.getRowNum(),cell.getColumnIndex());
@@ -89,12 +105,61 @@ public class ExcelToPdf{
                 addBorderByExcel(sheet.getWorkbook(),pdfpCell, cell.getCellStyle());
                 addImageByPOICell(pdfpCell , cell , cellWidth);
                 cells.add(pdfpCell);
+                if(merge.getRowpan()>1){
+                    MergeBack newMergeBack = new MergeBack(j,j+merge.getColspan()-1);
+                    for(int k=1;k<merge.getRowpan();k++){
+                        mergeBacks.put(i+k,newMergeBack);
+                    }
+                }
                 j += merge.getColspan() - 1;
             }
-            pdfPTableEx.setWidths(widths);
+            float rw = 0;
+            for (int j = 0; j < cws.length; j++) {
+                rw += cws[j];
+            }
+            if (rw > mw ||  mw == 0) {
+                widths = cws;
+                mw = rw;
+            }
         }
+        pdfPTableEx.setWidths(widths);
         pdfPTableEx.setCells(cells);
         return pdfPTableEx;
+    }
+
+    public static float getRowPixelHeight(float pageHeight,float maxHegiht,float rowHegiht){
+        float rowPixelHeight = pageHeight * (rowHegiht/maxHegiht);
+        Integer intValue = (int)rowPixelHeight;
+        return intValue;
+    }
+
+    public static int getMaxHeight(XSSFSheet sheet,int maxRowNum){
+        int maxHegiht = 0;
+        for(int i = 0;i<maxRowNum;i++){
+            XSSFRow row = sheet.getRow(i);
+            maxHegiht+=row.getHeightInPoints();
+        }
+        return maxHegiht;
+    }
+
+    public static BorderParam getBorderParam(XSSFSheet sheet){
+        int rowCount = sheet.getLastRowNum();
+        int maxCellNum = 0;
+        int lastTextRowNum = 0;
+        for(int i = 0 ; i < rowCount ; i++){
+            XSSFRow row = sheet.getRow(i);
+            int cellCount = row.getLastCellNum();
+            if(cellCount>maxCellNum) maxCellNum = cellCount;
+            for(int j = 0 ; j< cellCount ; j++){
+                XSSFCell cell = row.getCell(j);
+                if(cell == null) cell = row.createCell(j);
+                cell.setCellType(Cell.CELL_TYPE_STRING);
+                if(StringUtils.hasText(cell.getStringCellValue())&&i>=lastTextRowNum){
+                    lastTextRowNum = i+1;
+                }
+            }
+        }
+        return(new BorderParam(maxCellNum,lastTextRowNum,0));
     }
 
     public static int getPOICellWidth(Sheet sheet,Cell cell) {
@@ -190,15 +255,18 @@ public class ExcelToPdf{
         return result;
     }
 
-    public static void setPdfCellHeight(XSSFRow row,PdfPCell pdfpCell){
+    public static float setPdfCellHeight(XSSFRow row,PdfPCell pdfpCell){
         XSSFSheet sheet = row.getSheet();
+        float rowHegiht = 0;
         if (sheet.getDefaultRowHeightInPoints() != row.getHeightInPoints()) {
-            pdfpCell.setFixedHeight(getPixelHeight(row.getHeightInPoints()));
+            rowHegiht = getPixelHeight(row.getHeightInPoints());
+            pdfpCell.setFixedHeight(rowHegiht);
         }
+        return rowHegiht;
     }
 
     public static float getPixelHeight(float poiHeight){
-        float pixel = poiHeight / 28.6f * 26f;
+        float pixel = poiHeight / 80 * 96;
         return pixel;
     }
 
