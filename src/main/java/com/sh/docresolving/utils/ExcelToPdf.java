@@ -55,6 +55,7 @@ public class ExcelToPdf{
         for(int i = 0 ; i< sheetCount;i++){
             //获取单个sheet
             XSSFSheet sheet = workbook.getSheetAt(i);
+            XSSFPrintSetup xssfPrintSetup = sheet.getPrintSetup();
             PdfPTableEx pdfPTableEx = getPdfCells(sheet,A4Height);
             PdfPTable table = new PdfPTable(pdfPTableEx.getWidths());
             table.setWidthPercentage(100);
@@ -266,7 +267,7 @@ public class ExcelToPdf{
     }
 
     public static float getPixelHeight(float poiHeight){
-        float pixel = poiHeight / 80 * 96;
+        float pixel = poiHeight / 72 * 96;
         return pixel;
     }
 

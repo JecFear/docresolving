@@ -18,7 +18,7 @@ public class DocresolvingApplicationTests {
 
     @Test
     public void HSSFWORKBOOKTEST() throws Exception{
-        String fileIn = "sample1/tab.xlsx";
+        String fileIn = "sample1/download.xlsx";
         String uri = this.getClass().getResource(fileIn).getPath();
         String fileOut = uri.replaceAll(".xls$|.xlsx$",".pdf");
         ExcelToPdf.convert(uri,fileOut);
