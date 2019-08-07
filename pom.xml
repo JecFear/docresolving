@@ -118,6 +118,21 @@
             <artifactId>itext-asian</artifactId>
             <version>5.2.0</version>
         </dependency>
+
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>19.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.jacob</groupId>
+            <artifactId>jacob</artifactId>
+            <version>1.19</version>
+            <scope>system</scope>
+            <systemPath>F:/docresolving/jacob.jar</systemPath>
+        </dependency>
+
     </dependencies>
 
     <build>

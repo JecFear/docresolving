@@ -5,6 +5,10 @@ import com.itextpdf.text.Font;
 import com.itextpdf.text.pdf.PdfPCell;
 import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
+import com.jacob.activeX.ActiveXComponent;
+import com.jacob.com.ComThread;
+import com.jacob.com.Dispatch;
+import com.jacob.com.Variant;
 import com.sh.docresolving.entity.BorderParam;
 import com.sh.docresolving.entity.Merge;
 import com.sh.docresolving.entity.MergeBack;
@@ -13,6 +17,7 @@ import org.apache.poi.hssf.util.HSSFColor;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.*;
+import org.apache.poi.xssf.usermodel.extensions.XSSFCellBorder;
 import org.springframework.security.core.parameters.P;
 import org.springframework.util.StringUtils;
 
@@ -36,7 +41,7 @@ public class ExcelToPdf{
     public static void convert(String excelPath,String pdfPath) throws Exception {
         XSSFWorkbook workbook = readExcel(excelPath);
         Rectangle rectangle = new Rectangle(PageSize.A4);
-        float A4Height = PageSize.A4.getHeight()-90;
+        float A4Height = PageSize.A4.getHeight();
         Document document = new Document(rectangle);
         OutputStream os = new FileOutputStream(pdfPath);
         PdfWriter pdfWriter = PdfWriter.getInstance(document,os);
@@ -56,6 +61,7 @@ public class ExcelToPdf{
             //获取单个sheet
             XSSFSheet sheet = workbook.getSheetAt(i);
             XSSFPrintSetup xssfPrintSetup = sheet.getPrintSetup();
+            boolean landScape = xssfPrintSetup.getLandscape();
             PdfPTableEx pdfPTableEx = getPdfCells(sheet,A4Height);
             PdfPTable table = new PdfPTable(pdfPTableEx.getWidths());
             table.setWidthPercentage(100);
@@ -68,7 +74,6 @@ public class ExcelToPdf{
     }
 
     public static PdfPTableEx getPdfCells(XSSFSheet sheet,float A4Height) throws Exception{
-        int rowCount = sheet.getLastRowNum();
         List<PdfPCell> cells = new ArrayList<>();
         PdfPTableEx pdfPTableEx = new PdfPTableEx();
         float[] widths = null;
@@ -76,14 +81,11 @@ public class ExcelToPdf{
         BorderParam borderParam = getBorderParam(sheet);
         int maxColNum = borderParam.getMaxCol();
         int maxRowNum = borderParam.getMaxRow();
-        int maxHeight = getMaxHeight(sheet,maxRowNum);
         Map<Integer,MergeBack> mergeBacks = new HashMap<>();
         for(int i = 0 ; i < maxRowNum ; i++){
             XSSFRow row = sheet.getRow(i);
             float[] cws = new float[maxColNum];
             MergeBack mergeBack = mergeBacks.get(i);
-            float rowHeight = row.getHeightInPoints();
-            float rowPixelHeight = getRowPixelHeight(A4Height,maxHeight,rowHeight);
             for(int j = 0 ; j < maxColNum; j++){
                 XSSFCell cell = row.getCell(j);
                 if(mergeBack!=null&&j<=mergeBack.getEnd()&&j>=mergeBack.getStart()) continue;
@@ -101,9 +103,9 @@ public class ExcelToPdf{
                 pdfpCell.setRowspan(merge.getRowpan());
                 pdfpCell.setVerticalAlignment(getVAlignByExcel(cell.getCellStyle().getVerticalAlignment()));
                 pdfpCell.setHorizontalAlignment(getHAlignByExcel(cell.getCellStyle().getAlignment()));
-                pdfpCell.setPhrase(getPhrase(sheet.getWorkbook(),cell));
+                pdfpCell.setPhrase(getPhrase(sheet.getWorkbook(),cell,getZoomInFontHeight(height)));
                 setPdfCellHeight(row,pdfpCell);
-                addBorderByExcel(sheet.getWorkbook(),pdfpCell, cell.getCellStyle());
+                addBorderByExcel(sheet.getWorkbook(),pdfpCell, cell,cell.getCellStyle());
                 addImageByPOICell(pdfpCell , cell , cellWidth);
                 cells.add(pdfpCell);
                 if(merge.getRowpan()>1){
@@ -163,18 +165,6 @@ public class ExcelToPdf{
         return(new BorderParam(maxCellNum,lastTextRowNum,0));
     }
 
-    public static int getPOICellWidth(Sheet sheet,Cell cell) {
-        int poiCWidth = sheet.getColumnWidth(cell.getColumnIndex());
-        int cellWidthpoi = poiCWidth;
-        int widthPixel = 0;
-        if (cellWidthpoi >= 416) {
-            widthPixel = (int) (((cellWidthpoi - 416.0) / 256.0) * 8.0 + 13.0 + 0.5);
-        } else {
-            widthPixel = (int) (cellWidthpoi / 416.0 * 13.0 + 0.5);
-        }
-        return widthPixel;
-    }
-
     public static Merge getColspanRowspanByExcel(XSSFSheet sheet,int rowIndex, int colIndex) {
         CellRangeAddress result = null;
         int num = sheet.getNumMergedRegions();
@@ -228,12 +218,13 @@ public class ExcelToPdf{
         return result;
     }
 
-    public static Phrase getPhrase(XSSFWorkbook workbook,Cell cell) {
-        return new Phrase(cell.getStringCellValue(), getFontByExcel(workbook,cell.getCellStyle()));
+    public static Phrase getPhrase(XSSFWorkbook workbook,Cell cell,float fontSize) {
+        return new Phrase(cell.getStringCellValue(), getFontByExcel(workbook,cell.getCellStyle(),fontSize));
     }
 
-    public static Font getFontByExcel(XSSFWorkbook workbook,CellStyle style) {
-        Font result = new Font(Resource.BASE_FONT_CHINESE , 8 , Font.NORMAL);
+    public static Font getFontByExcel(XSSFWorkbook workbook,CellStyle style,float fontSize) {
+        Font result = new Font(Resource.BASE_FONT_CHINESE , Font.NORMAL);
+        result.setSize(fontSize);
         short index = style.getFontIndex();
         org.apache.poi.ss.usermodel.Font font = workbook.getFontAt(index);
 
@@ -260,10 +251,15 @@ public class ExcelToPdf{
         XSSFSheet sheet = row.getSheet();
         float rowHegiht = 0;
         if (sheet.getDefaultRowHeightInPoints() != row.getHeightInPoints()) {
-            rowHegiht = getPixelHeight(row.getHeightInPoints());
+            rowHegiht = row.getHeightInPoints();
             pdfpCell.setFixedHeight(rowHegiht);
         }
         return rowHegiht;
+    }
+
+    public static float getZoomInFontHeight(float originalHeight){
+        float zoomHeight = originalHeight * 998 / 1000;
+        return zoomHeight;
     }
 
     public static float getPixelHeight(float poiHeight){
@@ -271,11 +267,31 @@ public class ExcelToPdf{
         return pixel;
     }
 
-    public static void addBorderByExcel(XSSFWorkbook workbook,PdfPCell cell , CellStyle style) {
-        cell.setBorderColorLeft(new BaseColor(POIUtil.getBorderRBG(workbook,style.getLeftBorderColor())));
-        cell.setBorderColorRight(new BaseColor(POIUtil.getBorderRBG(workbook,style.getRightBorderColor())));
-        cell.setBorderColorTop(new BaseColor(POIUtil.getBorderRBG(workbook,style.getTopBorderColor())));
-        cell.setBorderColorBottom(new BaseColor(POIUtil.getBorderRBG(workbook,style.getBottomBorderColor())));
+    public static void addBorderByExcel(XSSFWorkbook workbook,PdfPCell pdfCell ,XSSFCell cell, CellStyle style) {
+        short borderTop = style.getBorderTop();
+        short borderLeft = style.getBorderLeft();
+        short borderBottom = style.getBorderBottom();
+        short borderRight = style.getBorderRight();
+        if(borderTop>0) {
+            pdfCell.setBorderColorTop(new BaseColor(POIUtil.getBorderRBG(workbook, style.getTopBorderColor())));
+        }else {
+            pdfCell.disableBorderSide(1);
+        }
+        if(borderLeft>0) {
+            pdfCell.setBorderColorLeft(new BaseColor(POIUtil.getBorderRBG(workbook,style.getLeftBorderColor())));
+        }else{
+            pdfCell.disableBorderSide(4);
+        }
+        if(borderBottom>0) {
+            pdfCell.setBorderColorBottom(new BaseColor(POIUtil.getBorderRBG(workbook,style.getBottomBorderColor())));
+        }else {
+            pdfCell.disableBorderSide(2);
+        }
+        if(borderRight>0) {
+            pdfCell.setBorderColorRight(new BaseColor(POIUtil.getBorderRBG(workbook,style.getRightBorderColor())));
+        }else{
+            pdfCell.disableBorderSide(8);
+        }
     }
 
     public static void addImageByPOICell(PdfPCell pdfpCell , Cell cell , float cellWidth) throws BadElementException, MalformedURLException, IOException {
@@ -287,6 +303,51 @@ public class ExcelToPdf{
             Image image = Image.getInstance(bytes);
             pdfpCell.setImage(image);
         }
+    }
+
+    private static final Integer WORD_TO_PDF_OPERAND = 17;
+    private static final Integer PPT_TO_PDF_OPERAND = 32;
+    private static final Integer EXCEL_TO_PDF_OPERAND = 0;
+
+    public static void excel2Pdf(String inFilePath, String outFilePath) throws Exception {
+        ActiveXComponent ax = null;
+        Dispatch excel = null;
+        try {
+            ComThread.InitSTA();
+            ax = new ActiveXComponent("Excel.Application");
+            ax.setProperty("Visible", new Variant(false));
+            ax.setProperty("AutomationSecurity", new Variant(3)); // 禁用宏
+            Dispatch excels = ax.getProperty("Workbooks").toDispatch();
+
+            Object[] obj = new Object[]{
+                    inFilePath,
+                    new Variant(false),
+                    new Variant(false)
+            };
+            excel = Dispatch.invoke(excels, "Open", Dispatch.Method, obj, new int[9]).toDispatch();
+
+            // 转换格式
+            Object[] obj2 = new Object[]{
+                    new Variant(EXCEL_TO_PDF_OPERAND), // PDF格式=0
+                    outFilePath,
+                    new Variant(0)  //0=标准 (生成的PDF图片不会变模糊) ; 1=最小文件
+            };
+            Dispatch.invoke(excel, "ExportAsFixedFormat", Dispatch.Method,obj2, new int[1]);
+
+        } catch (Exception es) {
+            es.printStackTrace();
+            throw es;
+        } finally {
+            if (excel != null) {
+                Dispatch.call(excel, "Close", new Variant(false));
+            }
+            if (ax != null) {
+                ax.invoke("Quit", new Variant[] {});
+                ax = null;
+            }
+            ComThread.Release();
+        }
+
     }
 }
 

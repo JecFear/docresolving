@@ -24,10 +24,12 @@ public class DocresolvingApplicationTests {
         ExcelToPdf.convert(uri,fileOut);
     }
 
-    private File fileOut(String fileIn) {
-        String uri = this.getClass().getResource(fileIn).getPath();
-        String fileOut = uri.replaceAll(".xls$|.xlsx$",".pdf");
-        File file = new File(fileOut);
-        return file;
+    @Test
+    public void HSSFWORKBOOKTESTss() throws Exception{
+        String fileIn = "F:\\docresolving\\target\\test-classes\\com\\sh\\docresolving\\sample1\\111.xlsx";
+        /*String uri = this.getClass().getResource(fileIn).getPath();
+        System.out.println(fileIn);*/
+        String fileOut = fileIn.replaceAll(".xls$|.xlsx$",".pdf");
+        ExcelToPdf.excel2Pdf(fileIn,fileOut);
     }
 }
