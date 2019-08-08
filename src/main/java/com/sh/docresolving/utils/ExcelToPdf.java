@@ -93,8 +93,6 @@ public class ExcelToPdf{
                 cell.setCellType(Cell.CELL_TYPE_STRING);
                 float cellWidth = sheet.getColumnWidth(cell.getColumnIndex());
                 cws[cell.getColumnIndex()] = cellWidth;
-                XSSFFont font = cell.getCellStyle().getFont();
-                short height = font.getFontHeightInPoints();
                 Merge merge = getColspanRowspanByExcel(sheet,row.getRowNum(),cell.getColumnIndex());
                 PdfPCell pdfpCell = new PdfPCell();
                 pdfpCell.setBackgroundColor(new BaseColor(POIUtil.getRGB(
@@ -103,7 +101,7 @@ public class ExcelToPdf{
                 pdfpCell.setRowspan(merge.getRowpan());
                 pdfpCell.setVerticalAlignment(getVAlignByExcel(cell.getCellStyle().getVerticalAlignment()));
                 pdfpCell.setHorizontalAlignment(getHAlignByExcel(cell.getCellStyle().getAlignment()));
-                pdfpCell.setPhrase(getPhrase(sheet.getWorkbook(),cell,getZoomInFontHeight(height)));
+                pdfpCell.setPhrase(getPhrase(sheet.getWorkbook(),cell));
                 setPdfCellHeight(row,pdfpCell);
                 addBorderByExcel(sheet.getWorkbook(),pdfpCell, cell,cell.getCellStyle());
                 addImageByPOICell(pdfpCell , cell , cellWidth);
@@ -218,18 +216,28 @@ public class ExcelToPdf{
         return result;
     }
 
-    public static Phrase getPhrase(XSSFWorkbook workbook,Cell cell,float fontSize) {
-        return new Phrase(cell.getStringCellValue(), getFontByExcel(workbook,cell.getCellStyle(),fontSize));
+    public static Phrase getPhrase(XSSFWorkbook workbook,Cell cell) {
+        return new Phrase(cell.getStringCellValue(), getFontByExcel(workbook,cell.getCellStyle()));
     }
 
-    public static Font getFontByExcel(XSSFWorkbook workbook,CellStyle style,float fontSize) {
-        Font result = new Font(Resource.BASE_FONT_CHINESE , Font.NORMAL);
-        result.setSize(fontSize);
+    public static Font getFontByExcel(XSSFWorkbook workbook,CellStyle style) {
         short index = style.getFontIndex();
-        org.apache.poi.ss.usermodel.Font font = workbook.getFontAt(index);
-
+        XSSFFont font = workbook.getFontAt(index);
+        Font result = new Font(Resource.BASE_FONT_CHINESE , Font.NORMAL);
+        result.setSize(getZoomInFontHeight(font.getFontHeightInPoints()));
+        System.out.println(font.getFontName());
         if(font.getBoldweight() == org.apache.poi.ss.usermodel.Font.BOLDWEIGHT_BOLD){
             result.setStyle(Font.BOLD);
+        }
+
+        if(font.getItalic()){
+            String ulString = Font.FontStyle.ITALIC.getValue();
+            result.setStyle(ulString);
+        }
+
+        if(font.getStrikeout()){
+            String ulString = Font.FontStyle.LINETHROUGH.getValue();
+            result.setStyle(ulString);
         }
 
         HSSFColor color = HSSFColor.getIndexHash().get(font.getColor());
@@ -303,51 +311,6 @@ public class ExcelToPdf{
             Image image = Image.getInstance(bytes);
             pdfpCell.setImage(image);
         }
-    }
-
-    private static final Integer WORD_TO_PDF_OPERAND = 17;
-    private static final Integer PPT_TO_PDF_OPERAND = 32;
-    private static final Integer EXCEL_TO_PDF_OPERAND = 0;
-
-    public static void excel2Pdf(String inFilePath, String outFilePath) throws Exception {
-        ActiveXComponent ax = null;
-        Dispatch excel = null;
-        try {
-            ComThread.InitSTA();
-            ax = new ActiveXComponent("Excel.Application");
-            ax.setProperty("Visible", new Variant(false));
-            ax.setProperty("AutomationSecurity", new Variant(3)); // 禁用宏
-            Dispatch excels = ax.getProperty("Workbooks").toDispatch();
-
-            Object[] obj = new Object[]{
-                    inFilePath,
-                    new Variant(false),
-                    new Variant(false)
-            };
-            excel = Dispatch.invoke(excels, "Open", Dispatch.Method, obj, new int[9]).toDispatch();
-
-            // 转换格式
-            Object[] obj2 = new Object[]{
-                    new Variant(EXCEL_TO_PDF_OPERAND), // PDF格式=0
-                    outFilePath,
-                    new Variant(0)  //0=标准 (生成的PDF图片不会变模糊) ; 1=最小文件
-            };
-            Dispatch.invoke(excel, "ExportAsFixedFormat", Dispatch.Method,obj2, new int[1]);
-
-        } catch (Exception es) {
-            es.printStackTrace();
-            throw es;
-        } finally {
-            if (excel != null) {
-                Dispatch.call(excel, "Close", new Variant(false));
-            }
-            if (ax != null) {
-                ax.invoke("Quit", new Variant[] {});
-                ax = null;
-            }
-            ComThread.Release();
-        }
-
     }
 }
 
