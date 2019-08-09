@@ -32,13 +32,12 @@ public class ExcelResolvingController {
     @RequestMapping(value = "/excel-to-pdf", method = RequestMethod.POST)
     public ResponseEntity Excel2Pdf(@RequestBody ExcelTransformDto excelTransformDto){
        try {
-           String localFilePath = fastDFSService.downloadFile(excelTransformDto.getFileIn(),Excel2Pdf.checkFileOutPathAndOut(Thread.currentThread().getContextClassLoader().getResource("fileOut").getPath()));
+           //String localFilePath = fastDFSService.downloadFile(excelTransformDto.getFileIn(),Excel2Pdf.checkFileOutPathAndOut(Thread.currentThread().getContextClassLoader().getResource("fileOut").getPath()));
            //excelTransformDto.setFileIn(localFilePath);
            String fastOutUrl = excelResolvingService.excelToPdf(excelTransformDto);
            //convertRecordService.saveConvertRecordByExcel2Pdf(excelTransformDto,fastOutUrl);
            return ResponseEntity.ok(fastOutUrl);
        }catch (Exception e) {
-           e.printStackTrace();
            return ResponseEntity.badRequest().body("转换失败,请重试或联系管理员!");
        }
     }

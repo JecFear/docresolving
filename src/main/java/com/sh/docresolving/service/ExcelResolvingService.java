@@ -18,8 +18,8 @@ public class ExcelResolvingService {
     public String excelToPdf(ExcelTransformDto excelTransformDto) throws Exception{
         String outFileName = System.currentTimeMillis()+".pdf";
         String fileOut = StringUtils.hasText(excelTransformDto.getFileout())?excelTransformDto.getFileout(): Excel2Pdf.checkFileOutPathAndOut(Thread.currentThread().getContextClassLoader().getResource("fileOut").getPath()+ File.separator+outFileName);
-        Excel2Pdf.excel2Pdf(excelTransformDto.getFileIn(),fileOut , excelTransformDto.getPrintSetup());
         File file = new File(fileOut);
+        Excel2Pdf.excel2Pdf(excelTransformDto.getFileIn(),fileOut , excelTransformDto.getPrintSetup());
         Assert.isTrue(file.exists(),"未能成功转换出PDF，请联系管理员查询原因!");
         String fastOutUrl = "";
         try {
