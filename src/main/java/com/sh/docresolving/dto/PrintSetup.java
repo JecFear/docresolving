@@ -1,4 +1,4 @@
-package com.sh.docresolving.entity;
+package com.sh.docresolving.dto;
 
 import com.jacob.com.Variant;
 
@@ -6,7 +6,9 @@ import java.util.HashMap;
 
 public class PrintSetup extends HashMap<String,Boolean> {
 
+    //竖向 true
     private static boolean vertical = true;
+    //横向 false
     private static boolean horizontal =false;
 
     @Override

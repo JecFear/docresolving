@@ -52,5 +52,10 @@ fdfs:
     width: 150
     height: 150
   tracker-list:            #TrackerList参数,支持多个
-  - 192.168.0.111:22122
-  web-server-url: http://192.168.0.111/
+    - 47.94.165.185:22122
+  web-server-url: http://www.shouhouzn.net/
+  pool:
+    max-wait-millis: 5
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true

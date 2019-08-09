@@ -4,7 +4,7 @@ import com.jacob.activeX.ActiveXComponent;
 import com.jacob.com.ComThread;
 import com.jacob.com.Dispatch;
 import com.jacob.com.Variant;
-import com.sh.docresolving.entity.PrintSetup;
+import com.sh.docresolving.dto.PrintSetup;
 
 public class Excel2Pdf {
 
@@ -12,8 +12,9 @@ public class Excel2Pdf {
     private static final Integer PPT_TO_PDF_OPERAND = 32;
     private static final Integer EXCEL_TO_PDF_OPERAND = 0;
 
-    public static void excel2Pdf(String inFilePath, String outFilePath,PrintSetup printSetup) throws Exception {
+    public static String excel2Pdf(String inFilePath, String outFilePath,PrintSetup printSetup) throws Exception {
         ActiveXComponent ax = null;
+        Dispatch excels = null;
         Dispatch excel = null;
         Dispatch sheets = null;
         Object[] obj2 = null;
@@ -22,7 +23,7 @@ public class Excel2Pdf {
             ax = new ActiveXComponent("Excel.Application");
             ax.setProperty("Visible", new Variant(false));//可视
             ax.setProperty("AutomationSecurity", new Variant(3)); // 禁用宏
-            Dispatch excels = ax.getProperty("Workbooks").toDispatch();
+            excels = ax.getProperty("Workbooks").toDispatch();
 
             Object[] obj = new Object[]{
                     inFilePath,
@@ -62,7 +63,17 @@ public class Excel2Pdf {
                 ax = null;
             }
             ComThread.Release();
+            return outFilePath;
         }
+    }
 
+    public static String checkFileOutPathAndOut(String originalFileOut){
+        char[] ochars = originalFileOut.toCharArray();
+        String firstChar = String.valueOf(ochars[0]);
+        if(!firstChar.equals("/")){
+            return originalFileOut;
+        }else{
+            return originalFileOut.substring(1);
+        }
     }
 }

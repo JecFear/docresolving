@@ -1,4 +1,4 @@
-package com.sh.docresolving.entity;
+package com.sh.docresolving.dto;
 
 import com.itextpdf.text.pdf.PdfPCell;
 

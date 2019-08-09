@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sh.docresolving.dao.ConvertRecordDao">
+    <resultMap type="com.sh.docresolving.entity.ConvertRecordEntity" id="convertRecordMap">
+        <id property="id"  column="id"/>
+        <result property="fileName" column="file_name"/>
+        <result property="originalUrl" column="original_url"/>
+        <result property="originalSuffix" column="original_suffix"/>
+        <result property="convertedUrl" column="converted_url"/>
+        <result property="convertedSuffix" column="converted_suffix"/>
+        <result property="convertType" column="convert_type"/>
+        <result property="operator" column="operator"/>
+        <result property="operateTime" column="operate_time"/>
+    </resultMap>
+</mapper>

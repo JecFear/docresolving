@@ -1,11 +1,11 @@
 package com.sh.docresolving;
 
-import com.itextpdf.text.pdf.BaseFont;
-import com.sh.docresolving.entity.PrintSetup;
+import com.sh.docresolving.dto.PrintSetup;
 import com.sh.docresolving.utils.Excel2Pdf;
 import com.sh.docresolving.utils.ExcelToPdf;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
@@ -14,6 +14,7 @@ import java.io.File;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
+@MapperScan(basePackages = {"com.sh.docresolving.dao"})
 public class DocresolvingApplicationTests {
 
     @Test
@@ -80,8 +81,13 @@ public class DocresolvingApplicationTests {
 
     @Test
     public void ssss(){
-        PrintSetup printSetup = new PrintSetup();
-        printSetup.put("sss",true);
-        System.out.println(printSetup.get("sss"));
+        getGroupNameByUrl("http://www.shouhouzn.net/group1/M00/00/17/rBGmcV1NOD2AcmuiAAG3t5XrVbc747.pdf");
+    }
+
+    private String getGroupNameByUrl(String url){
+        String infoPath = url.substring(url.indexOf("group"));
+        String groupName = infoPath.substring(0,infoPath.indexOf("/"));
+        String path = infoPath.substring(infoPath.indexOf("/")+1);
+        return url;
     }
 }
