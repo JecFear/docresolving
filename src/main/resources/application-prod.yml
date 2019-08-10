@@ -3,7 +3,7 @@ spring:
     type: com.alibaba.druid.pool.DruidDataSource
     driverClassName: com.mysql.jdbc.Driver
     druid:
-      url: jdbc:mysql://112.74.45.150:3306/lims-test2?allowMultiQueries=true&useUnicode=true&characterEncoding=UTF-8&autoReconnect=true
+      url: jdbc:mysql://localhost:3306/lims-test3?allowMultiQueries=true&useUnicode=true&characterEncoding=UTF-8&autoReconnect=true
       username: root
       password: root
       initial-size: 10
@@ -52,8 +52,9 @@ fdfs:
   tracker-list:            #TrackerList参数,支持多个
   - 47.94.165.185:22122
   web-server-url: http://www.shouhouzn.net/
-
+  pool:
+    min-idle-per-key: 10
 server:
-  port: 9113
+  port: 9227
   #单位B
   max-http-header-size: 2048000

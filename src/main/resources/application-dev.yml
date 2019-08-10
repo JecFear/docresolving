@@ -1,5 +1,13 @@
+eureka:
+  instance:
+    instance-id: ${spring.application.name}(${spring.cloud.client.ip-address}:${server.port})
+    hostname: localhost
+  client:
+    service-url:
+      defaultZone: http://192.168.0.112:8761/eureka/,http://192.168.0.112:8762/eureka/
+
 server:
-  port: 9113
+  port: 9227
 spring:
   datasource:
     type: com.alibaba.druid.pool.DruidDataSource
@@ -54,8 +62,6 @@ fdfs:
   tracker-list:            #TrackerList参数,支持多个
     - 47.94.165.185:22122
   web-server-url: http://www.shouhouzn.net/
-  pool:
-    max-wait-millis: 5
 mybatis-plus:
   configuration:
     map-underscore-to-camel-case: true

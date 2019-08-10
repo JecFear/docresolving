@@ -34,13 +34,22 @@ public class FastDFSService {
 
     public String upload(File file) throws IOException {
         if(file.exists()){
-            FileItem fileItem = new DiskFileItem("mainFile", Files.probeContentType(file.toPath()), false, file.getName(), (int) file.length(), file.getParentFile());
+            DiskFileItem fileItem = new DiskFileItem("file", Files.probeContentType(file.toPath()), true, file.getName(), 100000000, file.getParentFile());
+            OutputStream ous = fileItem.getOutputStream();
             MultipartFile multipartFile = new CommonsMultipartFile(fileItem);
             StorePath storePath = storageClient.uploadFile(multipartFile.getInputStream(),multipartFile.getSize(), FilenameUtils.getExtension(multipartFile.getOriginalFilename()),null);
+            ous.flush();
+            ous.close();
             return getResAccessUrl(storePath);
         }else{
             throw new FileNotFoundException("no file content found");
         }
+    }
+
+    public String upload(String filePath) throws  IOException{
+        File file = new File(filePath);
+        String url = upload(file);
+        return url;
     }
 
     public String upload(MultipartFile file) throws IOException {

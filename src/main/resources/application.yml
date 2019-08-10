@@ -1,4 +1,6 @@
 spring:
+  application:
+    name: doc-resolving-service
   profiles:
     active: dev
   servlet:
@@ -8,3 +10,6 @@ spring:
       enabled: true
   jackson:
     time-zone: GMT+8
+server:
+  servlet:
+    context-path: /doc-resolving

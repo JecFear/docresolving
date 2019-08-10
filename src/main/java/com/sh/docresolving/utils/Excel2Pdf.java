@@ -39,7 +39,6 @@ public class Excel2Pdf {
                         Dispatch.Get, new Object[] { new Integer(j) },
                         new int[1]).toDispatch();
                 String sheetName = Dispatch.get(currentSheet,"Name").toString();
-                System.out.println(sheetName);
                 Dispatch pageSetup = Dispatch.get(currentSheet, "PageSetup")
                         .toDispatch();
                 Dispatch.put(pageSetup, "Orientation", printSetup.getJacobVariantByOrientation(sheetName));

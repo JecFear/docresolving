@@ -30,6 +30,13 @@ public class UploadController {
         return new ResponseEntity<>(fileUrl, HttpStatus.OK);
     }
 
+    @PostMapping("/upload/file-by-file-path")
+    @ApiOperation(value = "上传附件FADS", notes = "上传附件FADS", response = ResponseEntity.class)
+    public ResponseEntity<String> uploadS(@RequestParam("filePath") String filePath) throws IOException {
+        String fileUrl = fastDFSService.upload(filePath);
+        return new ResponseEntity<>(fileUrl, HttpStatus.OK);
+    }
+
     @PostMapping("/download/file")
     @ApiOperation(value = "下载文件", notes = "下载文件", response = ResponseEntity.class)
     public ResponseEntity<String> downloadFile(@RequestParam("url") String url,@RequestParam("filePath") String filePath) throws IOException {

@@ -8,6 +8,9 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLConnection;
 
 @Service
 public class ExcelResolvingService {
@@ -23,12 +26,12 @@ public class ExcelResolvingService {
         Assert.isTrue(file.exists(),"未能成功转换出PDF，请联系管理员查询原因!");
         String fastOutUrl = "";
         try {
-            fastOutUrl = fastDFSService.uploadFile(file);
-        }catch (Exception e) {
-            e.printStackTrace();
-            /*fastOutUrl = fastDFSService.uploadFile(file);*/
+            fastOutUrl = fastDFSService.upload(file);
+        }catch (Exception e){
+            fastOutUrl = fastDFSService.upload(file);
+        }finally {
+            if(StringUtils.hasText(fastOutUrl)) file.delete();
+            return fastOutUrl;
         }
-        if(StringUtils.hasText(fastOutUrl)) file.delete();
-        return fastOutUrl;
     }
 }
