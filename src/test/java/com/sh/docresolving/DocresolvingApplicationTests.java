@@ -21,7 +21,7 @@ public class DocresolvingApplicationTests {
     public void contextLoads() {
     }
 
-    @Test
+   /* @Test
     public void HSSFWORKBOOKTEST() throws Exception{
         String fileIn = "sample1/download.xlsx";
         String uri = this.getClass().getResource(fileIn).getPath();
@@ -32,8 +32,8 @@ public class DocresolvingApplicationTests {
     @Test
     public void HSSFWORKBOOKTESTss() throws Exception{
         String fileIn = "F:\\docresolving\\target\\test-classes\\com\\sh\\docresolving\\sample1\\download.xlsx";
-        /*String uri = this.getClass().getResource(fileIn).getPath();
-        System.out.println(fileIn);*/
+        *//*String uri = this.getClass().getResource(fileIn).getPath();
+        System.out.println(fileIn);*//*
         String fileOut = fileIn.replaceAll(".xls$|.xlsx$",".pdf");
         PrintSetup printSetup = new PrintSetup();
         printSetup.put("sheet1",true);
@@ -89,5 +89,5 @@ public class DocresolvingApplicationTests {
         String groupName = infoPath.substring(0,infoPath.indexOf("/"));
         String path = infoPath.substring(infoPath.indexOf("/")+1);
         return url;
-    }
+    }*/
 }

@@ -1,5 +1,8 @@
 package com.sh.docresolving.dto;
 
+import lombok.Data;
+
+@Data
 public class Merge  {
 
     private int rowpan;
@@ -11,22 +14,6 @@ public class Merge  {
 
     public Merge(int rowpan, int colspan) {
         this.rowpan = rowpan;
-        this.colspan = colspan;
-    }
-
-    public int getRowpan() {
-        return rowpan;
-    }
-
-    public void setRowpan(int rowpan) {
-        this.rowpan = rowpan;
-    }
-
-    public int getColspan() {
-        return colspan;
-    }
-
-    public void setColspan(int colspan) {
         this.colspan = colspan;
     }
 }

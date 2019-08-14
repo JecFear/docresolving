@@ -1,24 +1,23 @@
 package com.sh.docresolving.controller;
 
-import com.sh.docresolving.dto.ExcelTransformDto;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sh.docresolving.dto.PrintSetup;
 import com.sh.docresolving.service.ConvertRecordService;
 import com.sh.docresolving.service.ExcelResolvingService;
 import com.sh.docresolving.service.FastDFSService;
 import com.sh.docresolving.utils.Excel2Pdf;
-import com.sh.docresolving.utils.FastDFSClient;
 import io.swagger.annotations.ApiOperation;
+import net.shouhouzn.lims.ms.umps.service.FeignUpmsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 
-@RestController("/excel-convert")
+@RestController
+@RequestMapping("/excel-convert")
 public class ExcelResolvingController {
 
     @Autowired
@@ -27,20 +26,27 @@ public class ExcelResolvingController {
     private ConvertRecordService convertRecordService;
     @Autowired
     private ExcelResolvingService excelResolvingService;
+    @Autowired
+    private FeignUpmsService feignUpmsService;
 
     @ApiOperation(value = "excel转pdf", notes = "jacob", response = ResponseEntity.class)
     @RequestMapping(value = "/excel-to-pdf", method = RequestMethod.POST)
-    public ResponseEntity Excel2Pdf(@RequestBody ExcelTransformDto excelTransformDto){
+    public ResponseEntity Excel2Pdf(@RequestParam("file") MultipartFile multipartFile,@RequestParam("printSetup") String json,@RequestHeader(value = "token",required = false) String token){
        try {
-           String localFilePath = fastDFSService.downloadFile(excelTransformDto.getFileIn(),Excel2Pdf.checkFileOutPathAndOut(Thread.currentThread().getContextClassLoader().getResource("fileOut").getPath()));
-           excelTransformDto.setFileIn(localFilePath);
-           String fastOutUrl = excelResolvingService.excelToPdf(excelTransformDto);
-           convertRecordService.saveConvertRecordByExcel2Pdf(excelTransformDto,fastOutUrl);
+           ObjectMapper objectMapper = new ObjectMapper();
+           PrintSetup printSetup = objectMapper.readValue(json, PrintSetup.class);
+           String fileOutDir = Thread.currentThread().getContextClassLoader().getResource("fileOut").getPath();
+           String fileOutDirTruePath = Excel2Pdf.checkFileOutPathAndOut(fileOutDir);
+           String fileOutPath = fileOutDirTruePath+File.separator+System.currentTimeMillis()+".xlsx";
+           File xlsxFile = new File(fileOutPath);
+           multipartFile.transferTo(xlsxFile);
+           String fastOutUrl = excelResolvingService.excelToPdf(fileOutPath,null,printSetup);
            if(!StringUtils.hasText(fastOutUrl)){
                 throw new IllegalStateException("fastDfs上传失败，请重试或联系管理员!");
            }
            return ResponseEntity.ok(fastOutUrl);
        }catch (Exception e) {
+           e.printStackTrace();
            return ResponseEntity.badRequest().body(e.getMessage());
        }
     }

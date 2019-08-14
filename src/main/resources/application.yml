@@ -1,8 +1,8 @@
 spring:
   application:
-    name: doc-resolving-service
+    name: docresolving
   profiles:
-    active: dev
+    active: test
   servlet:
     multipart:
       max-file-size: 100MB
@@ -12,4 +12,7 @@ spring:
     time-zone: GMT+8
 server:
   servlet:
-    context-path: /doc-resolving
+    context-path: /docresolving
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true

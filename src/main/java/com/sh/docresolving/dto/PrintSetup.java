@@ -1,9 +1,11 @@
 package com.sh.docresolving.dto;
 
 import com.jacob.com.Variant;
+import lombok.Data;
 
 import java.util.HashMap;
 
+@Data
 public class PrintSetup extends HashMap<String,Boolean> {
 
     //竖向 true

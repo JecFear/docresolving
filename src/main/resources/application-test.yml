@@ -1,9 +1,20 @@
+eureka:
+  instance:
+    instance-id: ${spring.application.name}(${spring.cloud.client.ip-address}:${server.port})
+    hostname: docresolving
+  client:
+    service-url:
+      defaultZone: http://192.168.0.112:8761/eureka/,http://192.168.0.112:8762/eureka/
+
+server:
+  port: 9227
+
 spring:
   datasource:
     type: com.alibaba.druid.pool.DruidDataSource
     driverClassName: com.mysql.jdbc.Driver
     druid:
-      url: jdbc:mysql://192.168.0.111:3309/lims-test?allowMultiQueries=true&useUnicode=true&characterEncoding=UTF-8&autoReconnect=true
+      url: jdbc:mysql://192.168.0.112:3306/doc-resolving?allowMultiQueries=true&useUnicode=true&characterEncoding=UTF-8&autoReconnect=true
       username: root
       password: root
       initial-size: 10
@@ -32,18 +43,7 @@ spring:
           config:
             multi-statement-allow: true
       default-auto-commit: false
-  redis:
-    database: 0
-    host: 192.168.0.111
-    port: 6379
-    password: shouhou123456
-    timeout: 5000ms
-    jedis:
-      pool:
-        max-active: 1000  # 连接池最大连接数（使用负值表示没有限制）
-        max-wait: -1ms      # 连接池最大阻塞等待时间（使用负值表示没有限制）
-        max-idle: 10      # 连接池中的最大空闲连接
-        min-idle: 5       # 连接池中的最小空闲连接
+
 fdfs:
   so-timeout: 1501
   connect-timeout: 601
@@ -53,5 +53,3 @@ fdfs:
   tracker-list:            #TrackerList参数,支持多个
   - 192.168.0.111:22122
   web-server-url: http://192.168.0.111/
-server:
-  port: 9113
