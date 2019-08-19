@@ -95,6 +95,7 @@ public class FastDFSService {
             fos = new FileOutputStream(file);
             bos = new BufferedOutputStream(fos);
             bos.write(content);
+            bos.flush();
         } catch (Exception e) {
             e.printStackTrace();
         } finally {

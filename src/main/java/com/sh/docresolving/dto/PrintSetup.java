@@ -25,6 +25,7 @@ public class PrintSetup extends HashMap<String,Boolean> {
 
     public Variant getJacobVariantByOrientation(Object key){
         Boolean orientation = super.get(key);
+        if(orientation == null) return null;
         if(orientation){
             return new Variant(1);
         }else{

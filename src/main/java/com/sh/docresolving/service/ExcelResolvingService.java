@@ -12,6 +12,7 @@ import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.Date;
 
 @Service
 public class ExcelResolvingService {
@@ -20,18 +21,20 @@ public class ExcelResolvingService {
     private FastDFSService fastDFSService;
 
     public String excelToPdf(String fileIn, String fileOut, PrintSetup printSetup) throws Exception{
+        fileIn = fastDFSService.downloadFile(fileIn,"C:\\excel");
         String outFileName = System.currentTimeMillis()+".pdf";
-        fileOut = StringUtils.hasText(fileOut)?fileOut: Excel2Pdf.checkFileOutPathAndOut(Thread.currentThread().getContextClassLoader().getResource("fileOut").getPath()+ File.separator+outFileName);
+        fileOut = StringUtils.hasText(fileOut)?fileOut: Excel2Pdf.checkFileOutPathAndOut("C:\\pdf"+ File.separator+outFileName);
         File file = new File(fileOut);
         Excel2Pdf.excel2Pdf(fileIn,fileOut , printSetup);
         Assert.isTrue(file.exists(),"未能成功转换出PDF，请联系管理员查询原因!");
         String fastOutUrl = "";
         try {
-            fastOutUrl = fastDFSService.upload(file);
+            fastOutUrl = fastDFSService.uploadFile(file);
+            System.out.println("上传成功..................");
         }catch (Exception e){
-            fastOutUrl = fastDFSService.upload(file);
+            e.printStackTrace();
         }finally {
-            if(StringUtils.hasText(fastOutUrl)) file.delete();
+            //if(StringUtils.hasText(fastOutUrl)) file.delete();
             return fastOutUrl;
         }
     }

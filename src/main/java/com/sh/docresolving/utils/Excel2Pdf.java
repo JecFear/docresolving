@@ -18,6 +18,7 @@ public class Excel2Pdf {
         Dispatch excel = null;
         Dispatch sheets = null;
         Object[] obj2 = null;
+        String header = printSetup.getHeader();
         try {
             ComThread.InitSTA();
             ax = new ActiveXComponent("Excel.Application");
@@ -41,7 +42,13 @@ public class Excel2Pdf {
                 String sheetName = Dispatch.get(currentSheet,"Name").toString();
                 Dispatch pageSetup = Dispatch.get(currentSheet, "PageSetup")
                         .toDispatch();
-                Dispatch.put(pageSetup, "Orientation", printSetup.getJacobVariantByOrientation(sheetName));
+                Dispatch.put(pageSetup, "CenterFooter", "第"+j+"页");
+                Dispatch.put(pageSetup,"PaperSize",new Variant(10));
+                /*Dispatch.put(pageSetup,"Zoom",false);//值为100或false  
+                Dispatch.put(pageSetup,"FitToPagesTall",1);//所有行为一页  
+                Dispatch.put(pageSetup,"FitToPagesWide",1);//所有列为一页(1或false)*/
+                Variant defalutVariant = printSetup.getJacobVariantByOrientation(sheetName)!=null?printSetup.getJacobVariantByOrientation(sheetName): new Variant(1);
+                Dispatch.put(pageSetup, "Orientation", defalutVariant);
             }
             // 转换格式
             obj2 = new Object[]{
@@ -49,7 +56,9 @@ public class Excel2Pdf {
                     outFilePath,
                     new Variant(0)  //0=标准 (生成的PDF图片不会变模糊) ; 1=最小文件
             };
+            System.out.println("ExportAsFixedFormat前..................");
             Dispatch.invoke(excel, "ExportAsFixedFormat", Dispatch.Method,obj2, new int[1]);
+            System.out.println("导出成功..................");
         } catch (Exception es) {
             es.printStackTrace();
             throw es;
@@ -67,6 +76,7 @@ public class Excel2Pdf {
     }
 
     public static String checkFileOutPathAndOut(String originalFileOut){
+        originalFileOut=originalFileOut.replaceAll("!","");
         char[] ochars = originalFileOut.toCharArray();
         String firstChar = String.valueOf(ochars[0]);
         if(!firstChar.equals("/")){

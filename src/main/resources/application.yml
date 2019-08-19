@@ -2,7 +2,7 @@ spring:
   application:
     name: docresolving
   profiles:
-    active: test
+    active: dev
   servlet:
     multipart:
       max-file-size: 100MB
@@ -11,8 +11,6 @@ spring:
   jackson:
     time-zone: GMT+8
 server:
+  port: 9227
   servlet:
     context-path: /docresolving
-mybatis-plus:
-  configuration:
-    map-underscore-to-camel-case: true

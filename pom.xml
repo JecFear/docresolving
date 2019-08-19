@@ -29,51 +29,13 @@
             <artifactId>spring-boot-starter-security</artifactId>
         </dependency>-->
         <dependency>
-            <groupId>net.shouhouzn.lims</groupId>
-            <artifactId>module-service</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
-            <scope>system</scope>
-            <systemPath>${project.basedir}/libs/module-service-0.0.1-SNAPSHOT.jar</systemPath>
-        </dependency>
-        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.baomidou</groupId>
-            <artifactId>mybatis-plus</artifactId>
-            <version>${mybatisplus.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.baomidou</groupId>
-            <artifactId>mybatisplus-spring-boot-starter</artifactId>
-            <version>${mybatisplus.spring.boot.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.session</groupId>
-            <artifactId>spring-session-core</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-devtools</artifactId>
-            <scope>runtime</scope>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>mysql</groupId>
-            <artifactId>mysql-connector-java</artifactId>
-            <version>5.1.38</version>
-            <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.alibaba</groupId>
-            <artifactId>druid-spring-boot-starter</artifactId>
-            <version>${druid.version}</version>
         </dependency>
         <dependency>
             <groupId>com.github.tobato</groupId>
@@ -142,7 +104,7 @@
             <artifactId>jacob</artifactId>
             <version>1.19</version>
             <scope>system</scope>
-            <systemPath>${project.basedir}/libs/jacob.jar</systemPath>
+            <systemPath>${project.basedir}/src/main/resources/lib/jacob.jar</systemPath>
         </dependency>
         <dependency>
             <groupId>io.springfox</groupId>
@@ -201,6 +163,19 @@
 
 
     <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+            </resource>
+            <resource>
+                <directory>${basedir}/src/main/resources/lib</directory>
+                <targetPath>BOOT-INF/lib</targetPath>
+                <includes>
+                    <include>**/*.jar</include>
+                </includes>
+            </resource>
+        </resources>
+
         <finalName>doc-resolving</finalName>
         <plugins>
             <plugin>
@@ -213,6 +188,17 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                    <encoding>UTF-8</encoding>
+                    <compilerArguments>
+                        <extdirs>${project.basedir}/src/main/resources/lib/jacob.jar</extdirs>
+                    </compilerArguments>
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>com.spotify</groupId>

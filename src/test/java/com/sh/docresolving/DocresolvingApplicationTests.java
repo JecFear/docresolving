@@ -1,20 +1,12 @@
 package com.sh.docresolving;
 
-import com.sh.docresolving.dto.PrintSetup;
-import com.sh.docresolving.utils.Excel2Pdf;
-import com.sh.docresolving.utils.ExcelToPdf;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import java.awt.*;
-import java.io.File;
-
 @RunWith(SpringRunner.class)
 @SpringBootTest
-@MapperScan(basePackages = {"com.sh.docresolving.dao"})
 public class DocresolvingApplicationTests {
 
     @Test
