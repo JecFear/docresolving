@@ -5,6 +5,7 @@ import com.jacob.com.ComThread;
 import com.jacob.com.Dispatch;
 import com.jacob.com.Variant;
 import com.sh.docresolving.dto.PrintSetup;
+import org.springframework.util.StringUtils;
 
 public class Excel2Pdf {
 
@@ -18,7 +19,7 @@ public class Excel2Pdf {
         Dispatch excel = null;
         Dispatch sheets = null;
         Object[] obj2 = null;
-        String header = printSetup.getHeader();
+        Integer headerStart = printSetup.headerStart();
         try {
             ComThread.InitSTA();
             ax = new ActiveXComponent("Excel.Application");
@@ -42,12 +43,27 @@ public class Excel2Pdf {
                 String sheetName = Dispatch.get(currentSheet,"Name").toString();
                 Dispatch pageSetup = Dispatch.get(currentSheet, "PageSetup")
                         .toDispatch();
-                Dispatch.put(pageSetup, "CenterFooter", "第"+j+"页");
-                Dispatch.put(pageSetup,"PaperSize",new Variant(10));
-                /*Dispatch.put(pageSetup,"Zoom",false);//值为100或false  
-                Dispatch.put(pageSetup,"FitToPagesTall",1);//所有行为一页  
-                Dispatch.put(pageSetup,"FitToPagesWide",1);//所有列为一页(1或false)*/
-                Variant defalutVariant = printSetup.getJacobVariantByOrientation(sheetName)!=null?printSetup.getJacobVariantByOrientation(sheetName): new Variant(1);
+                if(j>=headerStart){
+                    Object leftHeaderObj = printSetup.get("leftHeader");
+                    Object rightHeaderObj = printSetup.get("rightHeader");
+                    Object centerHeaderObj = printSetup.get("centerHeaderObj");
+                    if(leftHeaderObj!=null&& StringUtils.hasText(leftHeaderObj.toString())){
+                        Dispatch.put(pageSetup,"LeftHeader",leftHeaderObj);
+                    }
+                    if(rightHeaderObj!=null&& StringUtils.hasText(rightHeaderObj.toString())){
+                        Dispatch.put(pageSetup,"RightCenter",rightHeaderObj);
+                    }
+                    if(centerHeaderObj!=null&& StringUtils.hasText(centerHeaderObj.toString())){
+                        Dispatch.put(pageSetup,"CenterHeader",centerHeaderObj);
+                    }
+                }
+                //Dispatch.put(pageSetup,"CenterHorizontally",true);
+                /*Dispatch.put(pageSetup, "LeftMargin", new Variant(60));
+                Dispatch.put(pageSetup, "RightMargin", new Variant(47));
+                Dispatch.put(pageSetup, "TopMargin", new Variant(33));
+                Dispatch.put(pageSetup, "BottomMargin", new Variant(40));
+                Dispatch.put(pageSetup,"PaperSize",new Variant(10));*/
+                Variant defalutVariant = printSetup.getJacobVariantByOrientation(sheetName);
                 Dispatch.put(pageSetup, "Orientation", defalutVariant);
             }
             // 转换格式

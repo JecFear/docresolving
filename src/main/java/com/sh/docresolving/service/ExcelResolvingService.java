@@ -1,5 +1,8 @@
 package com.sh.docresolving.service;
 
+import com.itextpdf.text.*;
+import com.itextpdf.text.pdf.*;
+import com.itextpdf.text.pdf.parser.PdfTextExtractor;
 import com.sh.docresolving.dto.ExcelTransformDto;
 import com.sh.docresolving.dto.PrintSetup;
 import com.sh.docresolving.utils.Excel2Pdf;
@@ -8,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
+import javax.print.Doc;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -27,6 +31,10 @@ public class ExcelResolvingService {
         File file = new File(fileOut);
         Excel2Pdf.excel2Pdf(fileIn,fileOut , printSetup);
         Assert.isTrue(file.exists(),"未能成功转换出PDF，请联系管理员查询原因!");
+        if(printSetup.needPageNum()){
+            String ousFileName = System.currentTimeMillis()+".pdf";
+            addPageEvent(fileOut,"C:\\pdf"+ File.separator+ousFileName,printSetup.pageNumStart());
+        }
         String fastOutUrl = "";
         try {
             fastOutUrl = fastDFSService.uploadFile(file);
@@ -37,5 +45,29 @@ public class ExcelResolvingService {
             //if(StringUtils.hasText(fastOutUrl)) file.delete();
             return fastOutUrl;
         }
+    }
+
+    protected void addPageEvent(String fileOut,String ousFile,Integer pageNumStart) throws IOException,DocumentException{
+        ///////////////////////////
+        PdfReader pdfReader = new PdfReader(fileOut);
+        PdfStamper pdfStamper = new PdfStamper(pdfReader,new FileOutputStream(ousFile));
+        BaseFont baseFont = BaseFont.createFont("STSongStd-Light", "UniGB-UCS2-H", BaseFont.NOT_EMBEDDED);
+        int pageNum = pdfReader.getNumberOfPages();
+        for(int i=1;i<=pageNum;i++){
+            if(i>=pageNumStart){
+                PdfContentByte pdfContentByte = pdfStamper.getOverContent(i);
+                PdfDocument document = pdfContentByte.getPdfDocument();
+                String text = "第 " + i + " 页"+"  共 "+pageNum+" 页";
+                pdfContentByte.beginText();
+                pdfContentByte.setFontAndSize(baseFont , 10);
+                float bottom = document.bottom(0-document.bottom()+6);
+                float left = 0;
+                float right = pdfStamper.getImportedPage(pdfReader,i).getBoundingBox().getWidth();
+                pdfContentByte.showTextAligned(PdfContentByte.ALIGN_CENTER, text, (right + left) / 2, bottom, 0);
+                pdfContentByte.endText();
+            }
+        }
+        pdfStamper.close();
+        pdfReader.close();
     }
 }
