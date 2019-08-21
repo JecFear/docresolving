@@ -58,13 +58,13 @@ public class PrintSetup extends HashMap<String,Object> {
 
     public Integer pageNumStart(){
         Integer pageNumStart = getInt("pageNumStart");
-        if(pageNumStart == null) return 1;
+        if(pageNumStart == null) return 2;
         return pageNumStart;
     }
 
     public Integer headerStart(){
         Integer headerStart = getInt("headerStart");
-        if(headerStart == null) return 1;
+        if(headerStart == null) return 2;
         return headerStart;
     }
 }

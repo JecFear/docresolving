@@ -27,13 +27,15 @@ public class ExcelResolvingService {
     public String excelToPdf(String fileIn, String fileOut, PrintSetup printSetup) throws Exception{
         fileIn = fastDFSService.downloadFile(fileIn,"C:\\excel");
         String outFileName = System.currentTimeMillis()+".pdf";
-        fileOut = StringUtils.hasText(fileOut)?fileOut: Excel2Pdf.checkFileOutPathAndOut("C:\\pdf"+ File.separator+outFileName);
+        fileOut = StringUtils.hasText(fileOut)?fileOut:"C:\\pdf"+ File.separator+outFileName;
         File file = new File(fileOut);
         Excel2Pdf.excel2Pdf(fileIn,fileOut , printSetup);
         Assert.isTrue(file.exists(),"未能成功转换出PDF，请联系管理员查询原因!");
+        String ousFileName = "";
         if(printSetup.needPageNum()){
-            String ousFileName = System.currentTimeMillis()+".pdf";
+            ousFileName = System.currentTimeMillis()+".pdf";
             addPageEvent(fileOut,"C:\\pdf"+ File.separator+ousFileName,printSetup.pageNumStart());
+            file = new File("C:\\pdf"+ File.separator+ousFileName);
         }
         String fastOutUrl = "";
         try {
@@ -42,7 +44,7 @@ public class ExcelResolvingService {
         }catch (Exception e){
             e.printStackTrace();
         }finally {
-            //if(StringUtils.hasText(fastOutUrl)) file.delete();
+            if(StringUtils.hasText(fastOutUrl)&&StringUtils.hasText(ousFileName)) new File(fileOut).delete();
             return fastOutUrl;
         }
     }

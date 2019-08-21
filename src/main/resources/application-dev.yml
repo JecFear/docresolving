@@ -5,6 +5,8 @@ eureka:
   client:
     service-url:
       defaultZone: http://192.168.0.112:8761/eureka/,http://192.168.0.112:8762/eureka/
+    register-with-eureka: false
+    fetch-registry: false
 
 fdfs:
   so-timeout: 1501

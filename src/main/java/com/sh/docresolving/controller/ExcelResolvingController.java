@@ -22,7 +22,7 @@ public class ExcelResolvingController {
 
     @ApiOperation(value = "excel转pdf", notes = "jacob", response = ResponseEntity.class)
     @RequestMapping(value = "/excel-to-pdf", method = RequestMethod.POST)
-    public String excel2Pdf(@RequestParam("file") String filein, @RequestParam("json") String json){
+    public String excel2Pdf(@RequestParam("file") String filein, @RequestParam("json") String json) throws Exception{
        try {
            System.out.println("请求进入..................");
            ObjectMapper objectMapper = new ObjectMapper();
@@ -35,7 +35,7 @@ public class ExcelResolvingController {
            return fastOutUrl;
        }catch (Exception e) {
            e.printStackTrace();
-           return e.getMessage();
+           throw e;
        }
     }
 }

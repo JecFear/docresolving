@@ -51,7 +51,7 @@ public class Excel2Pdf {
                         Dispatch.put(pageSetup,"LeftHeader",leftHeaderObj);
                     }
                     if(rightHeaderObj!=null&& StringUtils.hasText(rightHeaderObj.toString())){
-                        Dispatch.put(pageSetup,"RightCenter",rightHeaderObj);
+                        Dispatch.put(pageSetup,"RightHeader",rightHeaderObj);
                     }
                     if(centerHeaderObj!=null&& StringUtils.hasText(centerHeaderObj.toString())){
                         Dispatch.put(pageSetup,"CenterHeader",centerHeaderObj);
