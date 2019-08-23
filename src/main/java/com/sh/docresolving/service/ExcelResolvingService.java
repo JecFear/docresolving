@@ -59,7 +59,7 @@ public class ExcelResolvingService {
             if(i>=pageNumStart){
                 PdfContentByte pdfContentByte = pdfStamper.getOverContent(i);
                 PdfDocument document = pdfContentByte.getPdfDocument();
-                String text = "第 " + i + " 页"+"  共 "+pageNum+" 页";
+                String text = "第 " + (i-pageNumStart+1) + " 页"+"  共 "+(pageNum-pageNumStart+1)+" 页";
                 pdfContentByte.beginText();
                 pdfContentByte.setFontAndSize(baseFont , 10);
                 float bottom = document.bottom(0-document.bottom()+6);

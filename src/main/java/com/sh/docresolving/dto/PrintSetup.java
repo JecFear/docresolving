@@ -1,6 +1,7 @@
 package com.sh.docresolving.dto;
 
 import com.jacob.com.Variant;
+import io.swagger.annotations.ApiModel;
 import lombok.Data;
 import org.springframework.util.StringUtils;
 
@@ -27,13 +28,35 @@ public class PrintSetup extends HashMap<String,Object> {
     public Boolean getBoolean(String key){
         Object object = super.get(key);
         if(object == null) return null;
-        return (Boolean) object;
+        try {
+            Boolean thisBoolean = (Boolean) object;
+            return thisBoolean;
+        }catch (Exception e){
+            return null;
+        }
     }
 
     public Integer getInt(String key){
         Object object = super.get(key);
         if(object == null) return null;
-        return (Integer) object;
+        try {
+            Integer thisInteger = (Integer) object;
+            return thisInteger;
+        }catch (Exception e) {
+            return null;
+        }
+    }
+
+    public Double getDouble(String key){
+        Object object = super.get(key);
+        if(object==null) return null;
+        try {
+            String doubleStr = object.toString();
+            Double thisDouble = Double.parseDouble(doubleStr);
+            return thisDouble;
+        }catch (Exception e){
+            return null;
+        }
     }
 
     public Variant getJacobVariantByOrientation(String key){
@@ -47,7 +70,9 @@ public class PrintSetup extends HashMap<String,Object> {
     }
 
     public Boolean getSheetOrientation(String key){
-        return getBoolean(key);
+        Boolean orientation = getBoolean(key);
+        if(orientation == null) return true;
+        return orientation;
     }
 
     public Boolean needPageNum(){
@@ -66,5 +91,17 @@ public class PrintSetup extends HashMap<String,Object> {
         Integer headerStart = getInt("headerStart");
         if(headerStart == null) return 2;
         return headerStart;
+    }
+
+    public Boolean getCenterHorizontally(){
+        Boolean centerHorizontally = getBoolean("centerHorizontally");
+        if(centerHorizontally==null) return false;
+        return centerHorizontally;
+    }
+
+    public Boolean getCenterVertically(){
+        Boolean centerVertically = getBoolean("centerVertically");
+        if(centerVertically==null) return false;
+        return centerVertically;
     }
 }

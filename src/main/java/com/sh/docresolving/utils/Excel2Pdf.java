@@ -5,6 +5,7 @@ import com.jacob.com.ComThread;
 import com.jacob.com.Dispatch;
 import com.jacob.com.Variant;
 import com.sh.docresolving.dto.PrintSetup;
+import org.aspectj.weaver.ast.Var;
 import org.springframework.util.StringUtils;
 
 public class Excel2Pdf {
@@ -46,25 +47,27 @@ public class Excel2Pdf {
                 if(j>=headerStart){
                     Object leftHeaderObj = printSetup.get("leftHeader");
                     Object rightHeaderObj = printSetup.get("rightHeader");
-                    Object centerHeaderObj = printSetup.get("centerHeaderObj");
-                    if(leftHeaderObj!=null&& StringUtils.hasText(leftHeaderObj.toString())){
-                        Dispatch.put(pageSetup,"LeftHeader",leftHeaderObj);
-                    }
-                    if(rightHeaderObj!=null&& StringUtils.hasText(rightHeaderObj.toString())){
-                        Dispatch.put(pageSetup,"RightHeader",rightHeaderObj);
-                    }
-                    if(centerHeaderObj!=null&& StringUtils.hasText(centerHeaderObj.toString())){
-                        Dispatch.put(pageSetup,"CenterHeader",centerHeaderObj);
-                    }
+                    Object centerHeaderObj = printSetup.get("centerHeader");
+                    if(leftHeaderObj!=null&& StringUtils.hasText(leftHeaderObj.toString())) Dispatch.put(pageSetup,"LeftHeader",leftHeaderObj);
+                    if(rightHeaderObj!=null&& StringUtils.hasText(rightHeaderObj.toString())) Dispatch.put(pageSetup,"RightHeader",rightHeaderObj);
+                    if(centerHeaderObj!=null&& StringUtils.hasText(centerHeaderObj.toString())) Dispatch.put(pageSetup,"CenterHeader",centerHeaderObj);
                 }
-                //Dispatch.put(pageSetup,"CenterHorizontally",true);
-                /*Dispatch.put(pageSetup, "LeftMargin", new Variant(60));
-                Dispatch.put(pageSetup, "RightMargin", new Variant(47));
-                Dispatch.put(pageSetup, "TopMargin", new Variant(33));
-                Dispatch.put(pageSetup, "BottomMargin", new Variant(40));
-                Dispatch.put(pageSetup,"PaperSize",new Variant(10));*/
+                Dispatch.put(pageSetup,"CenterHorizontally",printSetup.getCenterHorizontally());
+                Dispatch.put(pageSetup,"CenterVertically",printSetup.getCenterVertically());
+                Dispatch.put(pageSetup,"PaperSize",new Variant(9));
                 Variant defalutVariant = printSetup.getJacobVariantByOrientation(sheetName);
                 Dispatch.put(pageSetup, "Orientation", defalutVariant);
+                if(printSetup.getSheetOrientation(sheetName)){
+                    if(printSetup.getDouble("leftMargin")!=null) Dispatch.put(pageSetup, "LeftMargin", new Variant(printSetup.getDouble("leftMargin")*28.35));
+                    if(printSetup.getDouble("rightMargin")!=null) Dispatch.put(pageSetup, "RightMargin", new Variant(printSetup.getDouble("rightMargin")*28.35));
+                    if(printSetup.getDouble("topMargin")!=null) Dispatch.put(pageSetup, "TopMargin", new Variant(printSetup.getDouble("topMargin")*28.35));
+                    if(printSetup.getDouble("bottomMargin")!=null) Dispatch.put(pageSetup, "BottomMargin", new Variant(printSetup.getDouble("bottomMargin")*28.35));
+                }else{
+                    if(printSetup.getDouble("leftMargin")!=null) Dispatch.put(pageSetup, "TopMargin", new Variant(printSetup.getDouble("leftMargin")*28.35));
+                    if(printSetup.getDouble("rightMargin")!=null) Dispatch.put(pageSetup, "BottomMargin", new Variant(printSetup.getDouble("rightMargin")*28.35));
+                    if(printSetup.getDouble("topMargin")!=null) Dispatch.put(pageSetup, "RightMargin", new Variant(printSetup.getDouble("topMargin")*28.35));
+                    if(printSetup.getDouble("bottomMargin")!=null) Dispatch.put(pageSetup, "LeftMargin", new Variant(printSetup.getDouble("bottomMargin")*28.35));
+                }
             }
             // 转换格式
             obj2 = new Object[]{
