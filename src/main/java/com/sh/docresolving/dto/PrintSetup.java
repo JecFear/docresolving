@@ -1,9 +1,7 @@
 package com.sh.docresolving.dto;
 
 import com.jacob.com.Variant;
-import io.swagger.annotations.ApiModel;
 import lombok.Data;
-import org.springframework.util.StringUtils;
 
 import java.util.HashMap;
 

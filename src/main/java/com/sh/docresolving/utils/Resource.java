@@ -3,7 +3,6 @@ package com.sh.docresolving.utils;
 import com.itextpdf.text.Font;
 import com.itextpdf.text.FontFactory;
 import com.itextpdf.text.pdf.BaseFont;
-import org.apache.poi.hssf.usermodel.HSSFFont;
 import org.apache.poi.xssf.usermodel.XSSFFont;
 
 import java.io.File;

@@ -1,7 +1,6 @@
 package com.sh.docresolving.utils;
 
 import com.itextpdf.text.*;
-import com.itextpdf.text.Font;
 import com.itextpdf.text.pdf.PdfPCell;
 import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
@@ -10,7 +9,9 @@ import com.sh.docresolving.dto.Merge;
 import com.sh.docresolving.dto.MergeBack;
 import com.sh.docresolving.dto.PdfPTableEx;
 import org.apache.poi.hssf.util.HSSFColor;
-import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.FontUnderline;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.*;
 import org.springframework.util.StringUtils;
@@ -66,7 +67,7 @@ public class ExcelToPdf{
         return tables;
     }
 
-    public static PdfPTableEx getPdfCells(XSSFSheet sheet,float A4Height) throws Exception{
+    public static PdfPTableEx getPdfCells(XSSFSheet sheet, float A4Height) throws Exception{
         List<PdfPCell> cells = new ArrayList<>();
         PdfPTableEx pdfPTableEx = new PdfPTableEx();
         float[] widths = null;
@@ -74,7 +75,7 @@ public class ExcelToPdf{
         BorderParam borderParam = getBorderParam(sheet);
         int maxColNum = borderParam.getMaxCol();
         int maxRowNum = borderParam.getMaxRow();
-        Map<Integer,MergeBack> mergeBacks = new HashMap<>();
+        Map<Integer, MergeBack> mergeBacks = new HashMap<>();
         for(int i = 0 ; i < maxRowNum ; i++){
             XSSFRow row = sheet.getRow(i);
             float[] cws = new float[maxColNum];
@@ -156,7 +157,7 @@ public class ExcelToPdf{
         return(new BorderParam(maxCellNum,lastTextRowNum,0));
     }
 
-    public static Merge getColspanRowspanByExcel(XSSFSheet sheet,int rowIndex, int colIndex) {
+    public static Merge getColspanRowspanByExcel(XSSFSheet sheet, int rowIndex, int colIndex) {
         CellRangeAddress result = null;
         int num = sheet.getNumMergedRegions();
         for (int i = 0; i < num; i++) {

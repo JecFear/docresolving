@@ -1,15 +1,10 @@
 package com.sh.docresolving.service;
 
-import com.github.tobato.fastdfs.domain.conn.Connection;
 import com.github.tobato.fastdfs.domain.conn.FdfsWebServer;
-import com.github.tobato.fastdfs.domain.fdfs.*;
+import com.github.tobato.fastdfs.domain.fdfs.StorePath;
 import com.github.tobato.fastdfs.domain.proto.storage.DownloadByteArray;
-import com.github.tobato.fastdfs.domain.proto.storage.DownloadCallback;
 import com.github.tobato.fastdfs.exception.FdfsServerException;
-import com.github.tobato.fastdfs.service.DefaultGenerateStorageClient;
 import com.github.tobato.fastdfs.service.FastFileStorageClient;
-import com.github.tobato.fastdfs.service.TrackerClient;
-import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.disk.DiskFileItem;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,7 +15,6 @@ import org.springframework.web.multipart.commons.CommonsMultipartFile;
 
 import java.io.*;
 import java.nio.file.Files;
-import java.util.List;
 
 @Service
 public class FastDFSService {

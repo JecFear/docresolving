@@ -1,7 +1,7 @@
 package com.sh.docresolving.controller;
 
-import com.sh.docresolving.utils.FastDFSClient;
 import com.sh.docresolving.service.FastDFSService;
+import com.sh.docresolving.utils.FastDFSClient;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import sun.misc.BASE64Encoder;
 
-import java.io.*;
+import java.io.IOException;
 
 @RestController
 @Api(tags = "附件上传")

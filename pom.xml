@@ -9,10 +9,10 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>net.shouhouzn.lims</groupId>
-    <artifactId>docresolving</artifactId>
+    <artifactId>common-doc</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>docresolving</name>
-    <description>the project for poi and itext to resolving the doc problem</description>
+    <name>common-doc</name>
+    <description>document resolving</description>
 
     <properties>
         <java.version>1.8</java.version>
