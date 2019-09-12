@@ -1,10 +1,10 @@
 eureka:
   instance:
     instance-id: ${spring.application.name}(${spring.cloud.client.ip-address}:${server.port})
-    hostname: 172.16.1.121
+    hostname: 172.16.1.202
   client:
     service-url:
-      defaultZone: http://172.16.1.112:8761/eureka/,http://172.16.1.112:8762/eureka/
+      defaultZone: http://172.16.1.201:8761/eureka/,http://172.16.1.201:8762/eureka/
 
 fdfs:
   so-timeout: 1501
