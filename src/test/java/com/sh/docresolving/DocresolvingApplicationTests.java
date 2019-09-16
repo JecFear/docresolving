@@ -22,7 +22,7 @@ public class DocresolvingApplicationTests {
     @Test
     public void test(){
 
-        System.out.println("$1:$2".matches("\\$\\d:\\$\\d"));
+        System.out.println("$01:$1".matches("\\$[1-9]\\d*:\\$[1-9]\\d*"));
         System.out.println("$1:$B".matches("\\$[A-Z]:\\$[A-Z]"));
     }
 }

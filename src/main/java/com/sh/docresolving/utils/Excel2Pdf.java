@@ -8,6 +8,8 @@ import com.sh.docresolving.dto.PrintSetup;
 import org.aspectj.weaver.ast.Var;
 import org.springframework.util.StringUtils;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 public class Excel2Pdf {
@@ -39,6 +41,7 @@ public class Excel2Pdf {
             ax = new ActiveXComponent("Excel.Application"); //初始化EXCEL程序
             ax.setProperty("Visible", new Variant(false));//可视
             ax.setProperty("AutomationSecurity", new Variant(3)); // 禁用宏
+            ax.setProperty("DisplayAlerts",new Variant(false));
             excels = ax.getProperty("Workbooks").toDispatch();//获取Workbooks属性以使用
 
             Object[] obj = new Object[]{
@@ -67,17 +70,11 @@ public class Excel2Pdf {
                         .toDispatch();//获取pageSetup对象，以设置打印参数
                 Dispatch.put(pageSetup,"AlignMarginsHeaderFooter",new Variant(true));
                 Dispatch.put(pageSetup,"ScaleWithDocHeaderFooter",new Variant(true));
-
-                /*Map<String,String> sheetValue = printSetup.getSheetsValues(sheetName);
-                if(sheetValue.get("topTitleRows")!=null&&sheetValue.get("topTitleRows").matches("\\$\\d:\\$\\d")){
-                    Dispatch.put(pageSetup,"PrintTitleRows",sheetValue.get("topTitleRows"));
-                }
-                if(sheetValue.get("bottomTitleRows")!=null&&sheetValue.get("bottomTitleRows").matches("\\$\\d:\\$\\d")){
-
-                }
-                if(sheetValue.get("leftTitleRows")!=null&&sheetValue.get("leftTitleRows").matches("\\$[A-Z]:\\$[A-Z]")){
-                    Dispatch.put(pageSetup,"PrintTitleColumns",sheetValue.get("leftTitleRows"));
-                }
+                Dispatch.put(pageSetup,"CenterHorizontally",printSetup.getCenterHorizontally());
+                Dispatch.put(pageSetup,"CenterVertically",printSetup.getCenterVertically());
+                Dispatch.put(pageSetup,"PaperSize",new Variant(9));
+                Variant defalutVariant = printSetup.getJacobVariantByOrientation(sheetName);
+                Dispatch.put(pageSetup, "Orientation", defalutVariant);
                 if(printSetup.getSheetOrientation(sheetName)){
                     Map<String,Double> landScapeSet = printSetup.getLandscapeSet();
                     if(landScapeSet.get("leftMargin")!=null&&landScapeSet.get("leftMargin")!=0) Dispatch.put(pageSetup, "LeftMargin", new Variant(landScapeSet.get("leftMargin")*28.35));
@@ -95,7 +92,98 @@ public class Excel2Pdf {
                     if(portraitSet.get("headerMargin")!=null&&portraitSet.get("headerMargin")!=0) Dispatch.put(pageSetup,"HeaderMargin",new Variant(portraitSet.get("headerMargin")*28.35));
                     if(portraitSet.get("footerMargin")!=null&&portraitSet.get("footerMargin")!=0) Dispatch.put(pageSetup,"FooterMargin",new Variant(portraitSet.get("footerMargin")*28.35));
                 }
+                Map<String,String> sheetValue = printSetup.getSheetsValues(sheetName);
+                if(sheetValue.get("topTitleRows")!=null&&sheetValue.get("topTitleRows").matches("\\$[1-9]\\d*:\\$[1-9]\\d*")){
+                    Dispatch.put(pageSetup,"PrintTitleRows",sheetValue.get("topTitleRows"));
+                }
+                if(sheetValue.get("bottomTitleRows")!=null&&sheetValue.get("bottomTitleRows").matches("\\$[1-9]\\d*:\\$[1-9]\\d*")){
 
+                        String topTitleRowsStr = sheetValue.get("topTitleRows");
+                        String bottomTitleRowsStr = sheetValue.get("bottomTitleRows");
+                        List<Integer> topTitleRowIndexs = new ArrayList<>();
+                        if(sheetValue.get("topTitleRows")!=null&&sheetValue.get("topTitleRows").matches("\\$[1-9]\\d*:\\$[1-9]\\d*")){
+                            String[] topTitleRowSplit = topTitleRowsStr.split(":");
+                            for(int splitArrayIndex = 0;splitArrayIndex<topTitleRowSplit.length;splitArrayIndex++){
+                                topTitleRowSplit[splitArrayIndex]=topTitleRowSplit[splitArrayIndex].replace("$","");
+                                if (!topTitleRowIndexs.contains(topTitleRowSplit[splitArrayIndex])) topTitleRowIndexs.add(Integer.parseInt(topTitleRowSplit[splitArrayIndex]));
+                            }
+                        }
+                        if (topTitleRowIndexs.size()==2){
+                            for(int i=Integer.min(topTitleRowIndexs.get(0),topTitleRowIndexs.get(1))+1;i<Integer.max(topTitleRowIndexs.get(0),topTitleRowIndexs.get(1));i++){
+                                topTitleRowIndexs.add(i);
+                            }
+                        }
+
+                        double topMargin = Dispatch.get(pageSetup,"TopMargin").getDouble();
+                        double bottomMargin = +Dispatch.get(pageSetup,"BottomMargin").getDouble();
+
+                        Dispatch.invoke(sheets,"Add",Dispatch.Method,new Object[]{
+                                null,Dispatch.invoke(sheets, "Item",
+                                Dispatch.Get, new Object[] { new Integer(count) },
+                                new int[1]).toDispatch(),new Variant(1),new Variant(-4167)
+                        },new int[1]);
+
+                        double topTitleHeight = 0;
+                        if (topTitleRowIndexs.size()>0) {
+                            Dispatch topTitleRange = Dispatch.invoke(currentSheet, "Range",
+                                    Dispatch.Get, new Object[] { topTitleRowsStr },
+                                    new int[1]).toDispatch();
+                            topTitleHeight = Dispatch.get(topTitleRange,"Height").getDouble();
+                        }
+
+                        Dispatch bottomTitleRange = Dispatch.invoke(currentSheet, "Range",
+                                Dispatch.Get, new Object[] { bottomTitleRowsStr },
+                                new int[1]).toDispatch();
+                        double bottomTitleHeight = Dispatch.get(bottomTitleRange,"Height").getDouble();
+                        Dispatch bottomTitleRows = Dispatch.get(bottomTitleRange,"Rows").toDispatch();
+                        int bottomTitleRowsCount = Dispatch.get(bottomTitleRows,"Count").getInt();
+
+                        Dispatch.invoke(bottomTitleRange,"Copy",Dispatch.Method,new Object[]{
+                        },new int[1]);
+
+                        Dispatch newlySheet =Dispatch.invoke(sheets, "Item",
+                                Dispatch.Get, new Object[] { new Integer(count+1) },
+                                new int[1]).toDispatch();
+                        Dispatch.invoke(Dispatch.invoke(newlySheet, "Range",Dispatch.Get, new Object[] { "A1" },new int[1]).toDispatch(),"PasteSpecial",Dispatch.Method,new Object[]{
+                                new Variant(8)
+                        },new int[1]);
+                        Dispatch.invoke(Dispatch.invoke(newlySheet, "Range",Dispatch.Get, new Object[] { "A1" },new int[1]).toDispatch(),"PasteSpecial",Dispatch.Method,new Object[]{
+                                new Variant(-4104)
+                        },new int[1]);
+                        Dispatch.call(bottomTitleRange,"Delete");
+
+                        Dispatch usedRange = Dispatch.get(currentSheet,"UsedRange").toDispatch();
+                        Dispatch rows = Dispatch.get(usedRange,"Rows").toDispatch();
+                        int rowCount = Dispatch.get(rows,"Count").getInt();
+                        double marginHeight = topTitleHeight+bottomTitleHeight+topMargin+bottomMargin;
+                        double recordHeight = 0;
+
+
+                        for(int r=1;r<=rowCount;r++){
+                            if(topTitleRowIndexs.contains(r)) continue;
+                            Dispatch row =  Dispatch.invoke(rows, "Item",
+                                    Dispatch.Get, new Object[] { new Integer(r) },
+                                    new int[1]).toDispatch();
+                            double rowHeight = Dispatch.get(row,"RowHeight").getDouble();
+                            double pageHeight = A4_Height;
+                            recordHeight+=rowHeight;
+                            if(!printSetup.getSheetOrientation(sheetName)) pageHeight = A4_Width;
+                            if(recordHeight+marginHeight-pageHeight>=0){
+                                copyAndPasteBottomTitleRows(currentSheet,bottomTitleRowsCount,newlySheet,r);
+                                rowCount+=bottomTitleRowsCount;
+                                recordHeight=0;
+                                r+=bottomTitleRowsCount-1;
+                            }
+                        }
+                        Dispatch newlyUsedRange = Dispatch.get(currentSheet,"UsedRange").toDispatch();
+                        Dispatch newlyRows = Dispatch.get(newlyUsedRange,"Rows").toDispatch();
+                        int newlyRowCount = Dispatch.get(newlyRows,"Count").getInt();
+                        copyAndPasteBottomTitleRows(currentSheet,bottomTitleRowsCount,newlySheet,newlyRowCount+1);
+                        Dispatch.call(newlySheet,"Delete");
+                }
+                if(sheetValue.get("leftTitleRows")!=null&&sheetValue.get("leftTitleRows").matches("\\$[A-Z]:\\$[A-Z]")){
+                    Dispatch.put(pageSetup,"PrintTitleColumns",sheetValue.get("leftTitleRows"));
+                }
                 if(pageHeaderCount!=0&&j>=printSetup.headerOrFooterStart(printSetup.getHeader())){
                     String leftHeaderStr = printSetup.getExactHeaderOrFooter(printSetup.getHeader(),"leftHeader",pageHeaderCount);
                     String centerHeaderStr = printSetup.getExactHeaderOrFooter(printSetup.getHeader(),"centerHeader",pageHeaderCount);
@@ -153,90 +241,7 @@ public class Excel2Pdf {
                         Dispatch.put(rightFooterPicture,"Width",printSetup.getPictureParam(rightFooterPictureObject,"width")*28.35*0.809);
                         Dispatch.put(rightFooterPicture,"Height",printSetup.getPictureParam(rightFooterPictureObject,"height")*28.35*0.809);
                     }
-                }*/
-                if(j==6){
-                    String topTitleRowsStr = "$1:$1";
-                    String bottomTitleRowsStr = "$44:$44";
-                    double topMargin = Dispatch.get(pageSetup,"TopMargin").getDouble();
-                    double bottomMargin = +Dispatch.get(pageSetup,"BottomMargin").getDouble();
-
-                    Dispatch.invoke(sheets,"Add",Dispatch.Method,new Object[]{
-                            null,Dispatch.invoke(sheets, "Item",
-                            Dispatch.Get, new Object[] { new Integer(count) },
-                            new int[1]).toDispatch(),new Variant(1),new Variant(-4167)
-                    },new int[1]);
-
-                    Dispatch topTitleRange = Dispatch.invoke(currentSheet, "Range",
-                            Dispatch.Get, new Object[] { topTitleRowsStr },
-                            new int[1]).toDispatch();
-                    double topTitleHeight = Dispatch.get(topTitleRange,"Height").getDouble();
-                    Dispatch topTitleRows = Dispatch.get(topTitleRange,"Rows").toDispatch();
-                    int topTitleRowsCount = Dispatch.get(topTitleRows,"Count").getInt();
-
-                    Dispatch bottomTitleRange = Dispatch.invoke(currentSheet, "Range",
-                            Dispatch.Get, new Object[] { bottomTitleRowsStr },
-                            new int[1]).toDispatch();
-                    double bottomTitleHeight = Dispatch.get(bottomTitleRange,"Height").getDouble();
-                    Dispatch bottomTitleRows = Dispatch.get(bottomTitleRange,"Rows").toDispatch();
-                    int bottomTitleRowsCount = Dispatch.get(bottomTitleRows,"Count").getInt();
-
-                    Dispatch.invoke(bottomTitleRange,"Copy",Dispatch.Method,new Object[]{
-                    },new int[1]);
-
-                    Dispatch newlySheet =Dispatch.invoke(sheets, "Item",
-                            Dispatch.Get, new Object[] { new Integer(count+1) },
-                            new int[1]).toDispatch();
-                    Dispatch.invoke(Dispatch.invoke(newlySheet, "Range",Dispatch.Get, new Object[] { "A1" },new int[1]).toDispatch(),"PasteSpecial",Dispatch.Method,new Object[]{
-                            new Variant(8)
-                    },new int[1]);
-                    Dispatch.invoke(Dispatch.invoke(newlySheet, "Range",Dispatch.Get, new Object[] { "A1" },new int[1]).toDispatch(),"PasteSpecial",Dispatch.Method,new Object[]{
-                            new Variant(-4104)
-                    },new int[1]);
-                    Dispatch.call(bottomTitleRange,"Delete");
-
-                    Dispatch usedRange = Dispatch.get(currentSheet,"UsedRange").toDispatch();
-                    Dispatch rows = Dispatch.get(usedRange,"Rows").toDispatch();
-                    int rowCount = Dispatch.get(rows,"Count").getInt();
-                    double marginHeight = topTitleHeight+bottomTitleHeight;
-                    double recordHeight = 0;
-
-
-                    for(int r=1;r<=rowCount;r++){
-                        if(r==1||r==44) continue;
-                        Dispatch row =  Dispatch.invoke(rows, "Item",
-                                Dispatch.Get, new Object[] { new Integer(r) },
-                                new int[1]).toDispatch();
-                        Dispatch rowNext =  Dispatch.invoke(rows, "Item",
-                                Dispatch.Get, new Object[] { new Integer(r+1) },
-                                new int[1]).toDispatch();
-                        double rowHeight = Dispatch.get(row,"RowHeight").getDouble();
-                        double rowNextHeight = Dispatch.get(rowNext,"RowHeight").getDouble();
-                        recordHeight+=rowHeight;
-
-                        if(recordHeight+marginHeight+rowNextHeight-A4_Width>=0){
-                            Dispatch currentRow = Dispatch.invoke(currentSheet, "Range",Dispatch.Get, new Object[] { "$"+r+":$"+r },new int[1]).toDispatch();
-                            Dispatch.invoke(currentRow,"Insert",Dispatch.Method,new Object[]{
-                                    new Variant(-4121)
-                            },new int[1]);
-
-                            Dispatch.invoke(Dispatch.invoke(newlySheet, "Range",Dispatch.Get, new Object[] { "$"+1+":$"+bottomTitleRowsCount },new int[1]).toDispatch(),"CopyPicture",Dispatch.Method,new Object[]{
-                                    new Variant(2),new Variant(1)
-                            },new int[1]);
-
-                            Dispatch.invoke(currentSheet,"Paste",Dispatch.Method,new Object[]{
-                                    Dispatch.invoke(currentSheet, "Range",Dispatch.Get, new Object[] { "$"+r+":$"+r },new int[1]).toDispatch()
-                            },new int[1]);
-                            recordHeight=0;
-                        }
-                    }
                 }
-
-
-                Dispatch.put(pageSetup,"CenterHorizontally",printSetup.getCenterHorizontally());
-                Dispatch.put(pageSetup,"CenterVertically",printSetup.getCenterVertically());
-                Dispatch.put(pageSetup,"PaperSize",new Variant(9));
-                Variant defalutVariant = printSetup.getJacobVariantByOrientation(sheetName);
-                Dispatch.put(pageSetup, "Orientation", defalutVariant);
             }
 
             // 转换格式
@@ -284,5 +289,27 @@ public class Excel2Pdf {
             pageCount+=sheetPageCount;
         }
         return pageCount;
+    }
+
+    public static void copyAndPasteBottomTitleRows(Dispatch currentSheet,int bottomTitleRowsCount,Dispatch newlySheet,int currentRowIndex){
+        Dispatch currentRow = Dispatch.invoke(currentSheet, "Range",Dispatch.Get, new Object[] { "$"+currentRowIndex+":$"+currentRowIndex },new int[1]).toDispatch();
+        for(int insertI = 0;insertI<bottomTitleRowsCount;insertI++){
+            Dispatch.invoke(currentRow,"Insert",Dispatch.Method,new Object[]{
+                    new Variant(-4121)
+            },new int[1]);
+        }
+
+
+        Dispatch.invoke(Dispatch.invoke(newlySheet, "Range",Dispatch.Get, new Object[] { "$"+1+":$"+bottomTitleRowsCount },new int[1]).toDispatch(),"Copy",Dispatch.Method,new Object[]{
+                Dispatch.invoke(currentSheet, "Range",Dispatch.Get, new Object[] { "$"+currentRowIndex+":$"+(currentRowIndex+bottomTitleRowsCount-1) },new int[1]).toDispatch()
+        },new int[1]);
+
+        /*Dispatch.invoke(Dispatch.invoke(newlySheet, "Range",Dispatch.Get, new Object[] { "$"+1+":$"+bottomTitleRowsCount },new int[1]).toDispatch(),"CopyPicture",Dispatch.Method,new Object[]{
+                new Variant(2),new Variant(-4147)
+        },new int[1]);
+
+        Dispatch.invoke(currentSheet,"Paste",Dispatch.Method,new Object[]{
+                Dispatch.invoke(currentSheet, "Range",Dispatch.Get, new Object[] { "$"+currentRowIndex+":$"+(currentRowIndex+bottomTitleRowsCount-1) },new int[1]).toDispatch()
+        },new int[1]);*/
     }
 }
