@@ -26,7 +26,7 @@ public class FastDFSService {
     private FdfsWebServer fdfsWebServer;
 
 
-    public String upload(File file) throws IOException {
+   /* public String upload(File file) throws IOException {
         if(file.exists()){
             DiskFileItem fileItem = new DiskFileItem("file", Files.probeContentType(file.toPath()), true, file.getName(), 100000000, file.getParentFile());
             OutputStream ous = fileItem.getOutputStream();
@@ -38,11 +38,11 @@ public class FastDFSService {
         }else{
             throw new FileNotFoundException("no file content found");
         }
-    }
+    }*/
 
     public String upload(String filePath) throws  IOException{
         File file = new File(filePath);
-        String url = upload(file);
+        String url = uploadFile(file);
         return url;
     }
 

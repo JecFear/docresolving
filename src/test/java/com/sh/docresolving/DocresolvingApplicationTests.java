@@ -1,17 +1,10 @@
 package com.sh.docresolving;
 
-import com.jacob.activeX.ActiveXComponent;
-import com.jacob.com.ComThread;
-import com.jacob.com.Dispatch;
-import com.jacob.com.Variant;
-import com.sh.docresolving.dto.PrintSetup;
-import com.sh.docresolving.utils.Excel2Pdf;
 import com.sh.docresolving.utils.ExcelToPdf;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.util.StringUtils;
 
 import java.io.File;
 
@@ -19,10 +12,24 @@ import java.io.File;
 @SpringBootTest
 public class DocresolvingApplicationTests {
 
-    @Test
-    public void test(){
-
-        System.out.println("$01:$1".matches("\\$[1-9]\\d*:\\$[1-9]\\d*"));
-        System.out.println("$1:$B".matches("\\$[A-Z]:\\$[A-Z]"));
-    }
+//    @Test
+//    public void contextLoads() {
+//    }
+//
+//    @Test
+//    public void HSSFWORKBOOKTEST() throws Exception{
+//        String fileIn = "sample1/download.xlsx";
+//        String uri = this.getClass().getResource(fileIn).getPath();
+//        String fileOut = uri.replaceAll(".xls$|.xlsx$",".pdf");
+//        ExcelToPdf.convert(uri,fileOut);
+//    }
+//
+//    @Test
+//    public void HSSFWORKBOOKTESTss() throws Exception{
+//        String fileIn = "F:\\docresolving\\target\\test-classes\\com\\sh\\docresolving\\sample1\\111.xlsx";
+//        /*String uri = this.getClass().getResource(fileIn).getPath();
+//        System.out.println(fileIn);*/
+//        String fileOut = fileIn.replaceAll(".xls$|.xlsx$",".pdf");
+//        ExcelToPdf.excel2Pdf(fileIn,fileOut);
+//    }
 }

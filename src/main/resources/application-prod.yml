@@ -4,7 +4,7 @@ eureka:
     hostname: localhost
   client:
     service-url:
-      defaultZone: http://112.74.45.150:8762/eureka/
+      defaultZone: http://112.74.45.150:8761/eureka/
 fdfs:
   so-timeout: 1501
   connect-timeout: 601

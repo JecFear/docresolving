@@ -2,18 +2,19 @@ package com.sh.docresolving.dto;
 
 import com.jacob.com.Variant;
 import lombok.Data;
-import org.omg.CORBA.OBJ_ADAPTER;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Data
 public class PrintSetup extends HashMap<String,Object> {
 
     //竖向 true
-    private static boolean vertical = true;
+    private static boolean vertical = true;  //1
     //横向 false
-    private static boolean horizontal =false;
+    private static boolean horizontal =false; //2
 
 
     @Override
@@ -44,18 +45,6 @@ public class PrintSetup extends HashMap<String,Object> {
             Integer thisInteger = (Integer) object;
             return thisInteger;
         }catch (Exception e) {
-            return null;
-        }
-    }
-
-    public Double getDouble(String key){
-        Object object = super.get(key);
-        if(object==null) return null;
-        try {
-            String doubleStr = object.toString();
-            Double thisDouble = Double.parseDouble(doubleStr);
-            return thisDouble;
-        }catch (Exception e){
             return null;
         }
     }
@@ -128,6 +117,18 @@ public class PrintSetup extends HashMap<String,Object> {
         }
     }
 
+    public Integer headerOrFooterEnd(Map<String,Object> headerOrFooter){
+        if(headerOrFooter==null) return 0;
+        Object pageNumEndObj = headerOrFooter.get("pageNumEnd");
+        if (pageNumEndObj==null) return 0;
+        try {
+            Integer pageNumEnd = Integer.parseInt(pageNumEndObj.toString());
+            return pageNumEnd;
+        }catch (Exception e){
+            return 0;
+        }
+    }
+
 
 
     public Boolean getCenterHorizontally(){
@@ -143,11 +144,13 @@ public class PrintSetup extends HashMap<String,Object> {
     }
 
     public String currentPageReplace(int pageOffset){
-        return"&P-"+pageOffset;
+        if(pageOffset==0) return "&P";
+        return " &P-"+pageOffset+"";
     }
 
     public String totalPageReplace(int pageOffset){
-        return "&N-"+pageOffset;
+        if(pageOffset==0) return "&N";
+        return " &N-"+pageOffset+"";
     }
 
     public String graphReplace(){
@@ -178,16 +181,33 @@ public class PrintSetup extends HashMap<String,Object> {
     }
 
     public Map<String,Double> getLandscapeSet(){
-        return (HashMap)this.get("landscapeSet");
+        try {
+            return (HashMap)this.get("landscapeSet");
+        }catch (Exception e){
+            return null;
+        }
     }
 
     public Map<String,Double> getPortraitSet(){
-        return (HashMap)this.get("portraitSet");
+        try {
+            return (HashMap)this.get("portraitSet");
+        }catch (Exception e){
+            return null;
+        }
     }
 
     public Map<String,String> getSheetsValues(String sheetName){
         Map<String,Map<String,String>> sheetsValues = (HashMap)this.get("sheetsValues");
         return sheetsValues.get(sheetName);
+    }
+
+    public List<String> getRemainSheets(){
+        String retainSheetStr = "";
+        try {
+            retainSheetStr = this.get("remainSheets").toString();
+        }catch (NullPointerException e){}
+        List<String> retainSheets = Arrays.asList(retainSheetStr.split(","));
+        return retainSheets;
     }
 
     /** commitExample
